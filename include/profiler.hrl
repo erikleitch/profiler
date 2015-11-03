@@ -1,6 +1,6 @@
 -export([perf_profile/1]).
 
-%-define(PROFILE, true).
+-define(PROFILE, true).
 -ifdef(PROFILE).
 perf_profile(Tuple) ->
     profiler:profile(Tuple).

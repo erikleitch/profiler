@@ -31,7 +31,7 @@ Profiler::Profiler()
 Profiler::~Profiler() 
 {
     std::ostringstream os;
-    os << prefix_ << this << "_profile.txt";
+    os << prefix_ << "/" << this << "_profile.txt";
     append(os.str());
 
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter=usecCurr_.begin(); iter != usecCurr_.end(); iter++) {
