@@ -11,7 +11,6 @@
 #include <string.h>
 
 using namespace std;
-
 using namespace nifutil;
 
 /**.......................................................................
