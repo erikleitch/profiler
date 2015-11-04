@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include <arpa/inet.h>
+#include <string.h>
 
 using namespace std;
 

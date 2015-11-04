@@ -14,8 +14,9 @@
  */
 #include "erl_nif.h"
 
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
+#include <stdint.h>
 
 #define MIN_BUF_SIZE 1024
 
