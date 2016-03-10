@@ -32,6 +32,8 @@ namespace nifutil {
 
         void resize(unsigned n);
         unsigned start(unsigned index);
+        unsigned start(unsigned index, std::string label);
+
         void stop(unsigned index, unsigned count=0);
         void append(std::string fileName);
         void setPrefix(std::string fileName);
@@ -43,11 +45,13 @@ namespace nifutil {
 
         Profiler();
 
-        std::map<pthread_t, std::vector<int64_t>* > usecCurr_;
-        std::map<pthread_t, std::vector<int64_t>* > deltas_;
+        std::map<pthread_t, std::vector<int64_t>* >     usecCurr_;
+        std::map<pthread_t, std::vector<int64_t>* >     deltas_;
+        std::map<pthread_t, std::vector<std::string>* > labels_;
 
-        std::vector<int64_t>* getCurr();
-        std::vector<int64_t>* getDeltas();
+        std::vector<int64_t>*     getCurr();
+        std::vector<int64_t>*     getDeltas();
+        std::vector<std::string>* getLabels();
 
         unsigned size_;
         unsigned nAccessed_;

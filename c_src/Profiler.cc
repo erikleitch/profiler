@@ -41,6 +41,10 @@ Profiler::~Profiler()
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter=deltas_.begin(); iter != deltas_.end(); iter++) {
         delete iter->second;
     }
+
+    for(std::map<pthread_t, std::vector<string>* >::iterator iter=labels_.begin(); iter != labels_.end(); iter++) {
+        delete iter->second;
+    }
 }
 
 void Profiler::resize(unsigned n)
@@ -75,6 +79,20 @@ std::vector<int64_t>* Profiler::getDeltas()
     return v;
 }
 
+std::vector<string>* Profiler::getLabels()
+{
+    pthread_t id = pthread_self();
+    id = 0x0;
+    bool first = (labels_.find(id) == labels_.end());
+
+    if(first) {
+        labels_[id] = new std::vector<string>(size_, "");
+    }
+    
+    std::vector<string>* v = labels_[id];
+    return v;
+}
+
 unsigned Profiler::start(unsigned index)
 {
     unsigned count = 0;
@@ -86,11 +104,28 @@ unsigned Profiler::start(unsigned index)
         int64_t usec = getCurrentMicroSeconds();
         count = ++counter_;
 
-//        if(index < 7) {
-//            FOUT(pthread_self() << " Accessing curr = " << curr << " with index = " << index << " and usec = " << usec 
-//                 << " and curr->at(index) = " << curr->at(index) << " count = " << count);
-//        }
         curr->at(index) = usec;
+        mutex_.Unlock();
+    }
+
+    return count;
+}
+
+unsigned Profiler::start(unsigned index, std::string label)
+{
+    unsigned count = 0;
+    if(index < size_) {
+        
+        mutex_.Lock();
+        std::vector<int64_t>* curr = getCurr();
+        std::vector<string>* labels = getLabels();
+
+        int64_t usec = getCurrentMicroSeconds();
+        count = ++counter_;
+
+        curr->at(index)   = usec;
+        labels->at(index) = label;
+
         mutex_.Unlock();
     }
 
@@ -106,10 +141,6 @@ void Profiler::stop(unsigned index, unsigned count)
 
         int64_t usec = getCurrentMicroSeconds();
 
-//        if(index < 7) {
-//            FOUT(pthread_self() << " Accessing deltas = " << deltas << " curr = " << curr << " with index = " << index << " and usec = " << usec << " and curr->at(index) = " << curr->at(index) << " and deltas->at(index) = " << deltas->at(index) << " count = " << count);
-//        }
-
         deltas->at(index) += (usec - curr->at(index));
 
         mutex_.Unlock();
@@ -123,6 +154,19 @@ void Profiler::append(std::string fileName)
     
     mutex_.Lock();
 
+    if(labels_.size() > 0) {
+        for(std::map<pthread_t, std::vector<string>* >::iterator iter = labels_.begin();
+            iter != labels_.end(); iter++) {
+            outfile << "label" << " " << iter->first << " ";
+            for(unsigned i=0; i < size_; i++) {
+                outfile << "'" << iter->second->at(i) << "'";
+                if(i < size_-1)
+                    outfile << " ";
+            }
+            outfile << std::endl;
+        }
+    }
+    
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter = deltas_.begin();
         iter != deltas_.end(); iter++) {
 

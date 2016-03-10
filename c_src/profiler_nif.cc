@@ -81,7 +81,12 @@ ERL_NIF_TERM profile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         //------------------------------------------------------------
 
         if(atom == "start") {
-            ErlNifUInt64 count = Profiler::get()->start(ErlUtil::getValAsUint32(env, cells[1]));
+            ErlNifUInt64 count=0;
+            if(cells.size() > 2) {
+                count = Profiler::get()->start(ErlUtil::getValAsUint32(env, cells[1]), ErlUtil::getAsString(env, cells[2]));
+            } else {
+                count = Profiler::get()->start(ErlUtil::getValAsUint32(env, cells[1]));
+            }
             return enif_make_uint64(env, count);
         }
 
