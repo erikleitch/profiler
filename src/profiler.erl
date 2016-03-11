@@ -21,7 +21,7 @@
 %% -------------------------------------------------------------------
 -module(profiler).
 
--export([profile/1]).
+-export([profile/1, perf_profile/1]).
 
 -on_load(init/0).
 
@@ -38,6 +38,15 @@
 -import(lager,[info/2]).
 
 -include_lib("include/profiler.hrl").
+
+-ifdef(PROFILE).
+perf_profile(Tuple) ->
+    profiler:profile(Tuple).
+-else.
+perf_profile(_Tuple) ->
+    ok.
+-endif.
+
 
 -spec init() -> ok | {error, any()}.
 init() ->
