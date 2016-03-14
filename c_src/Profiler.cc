@@ -228,7 +228,7 @@ void Profiler::append(std::string fileName)
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter = deltaCounts_.begin();
         iter != deltaCounts_.end(); iter++) {
 
-        outfile << "count" << iter->first << " ";
+        outfile << "count" << " " << iter->first << " ";
 
         for(unsigned i=0; i < size_; i++) {
             outfile << iter->second->at(i);
@@ -241,7 +241,7 @@ void Profiler::append(std::string fileName)
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter = deltas_.begin();
         iter != deltas_.end(); iter++) {
 
-        outfile << "usec" << iter->first << " ";
+        outfile << "usec" << " " << iter->first << " ";
         for(unsigned i=0; i < size_; i++) {
             outfile << iter->second->at(i);
             if(i < size_-1)
