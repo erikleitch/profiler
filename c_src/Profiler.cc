@@ -137,8 +137,9 @@ unsigned Profiler::start(unsigned index)
         std::vector<int64_t>* curr = getCurr();
         std::vector<int64_t>* currCounts = getCurrCounts();
         int64_t usec = getCurrentMicroSeconds();
-        count = ++counter_;
 
+        count = ++counter_;
+        
         curr->at(index) = usec;
         currCounts->at(index) = count;
         
@@ -189,10 +190,8 @@ void Profiler::stop(unsigned index, unsigned count)
 
         // Keep track of the number of times the Profiler registers
         // have been accessed since the current counter was started.
-        // We decrement the count by one because we don't want to
-        // include the access that started this counter
         
-        deltaCounts->at(index) += (counter_ - currCounts->at(index) - 1);
+        deltaCounts->at(index) += (counter_ - currCounts->at(index));
 
         // Counter now serves as both a unique incrementing counter,
         // and a count of the number of times the Profiler registers
@@ -214,7 +213,9 @@ void Profiler::append(std::string fileName)
     if(labels_.size() > 0) {
         for(std::map<pthread_t, std::vector<string>* >::iterator iter = labels_.begin();
             iter != labels_.end(); iter++) {
+
             outfile << "label" << " " << iter->first << " ";
+
             for(unsigned i=0; i < size_; i++) {
                 outfile << "'" << iter->second->at(i) << "'";
                 if(i < size_-1)
@@ -223,11 +224,12 @@ void Profiler::append(std::string fileName)
             outfile << std::endl;
         }
     }
-    
+
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter = deltaCounts_.begin();
         iter != deltaCounts_.end(); iter++) {
 
-        outfile << iter->first << " ";
+        outfile << "count" << iter->first << " ";
+
         for(unsigned i=0; i < size_; i++) {
             outfile << iter->second->at(i);
             if(i < size_-1)
@@ -239,7 +241,7 @@ void Profiler::append(std::string fileName)
     for(std::map<pthread_t, std::vector<int64_t>* >::iterator iter = deltas_.begin();
         iter != deltas_.end(); iter++) {
 
-        outfile << iter->first << " ";
+        outfile << "usec" << iter->first << " ";
         for(unsigned i=0; i < size_; i++) {
             outfile << iter->second->at(i);
             if(i < size_-1)
