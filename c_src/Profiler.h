@@ -45,12 +45,20 @@ namespace nifutil {
 
         Profiler();
 
+        std::map<pthread_t, std::vector<int64_t>* >     currCounts_;
+        std::map<pthread_t, std::vector<int64_t>* >     deltaCounts_;
+
         std::map<pthread_t, std::vector<int64_t>* >     usecCurr_;
         std::map<pthread_t, std::vector<int64_t>* >     deltas_;
+
         std::map<pthread_t, std::vector<std::string>* > labels_;
+
+        std::vector<int64_t>*     getCurrCounts();
+        std::vector<int64_t>*     getDeltaCounts();
 
         std::vector<int64_t>*     getCurr();
         std::vector<int64_t>*     getDeltas();
+
         std::vector<std::string>* getLabels();
 
         unsigned size_;
