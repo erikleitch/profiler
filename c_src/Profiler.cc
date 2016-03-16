@@ -210,6 +210,8 @@ void Profiler::append(std::string fileName)
     
     mutex_.Lock();
 
+    outfile << "totalcount" << " " << counter_ << std::endl;
+
     if(labels_.size() > 0) {
         for(std::map<pthread_t, std::vector<string>* >::iterator iter = labels_.begin();
             iter != labels_.end(); iter++) {
