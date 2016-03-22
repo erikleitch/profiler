@@ -206,7 +206,7 @@ void Profiler::stop(unsigned index, unsigned count)
 void Profiler::append(std::string fileName)
 {
     std::fstream outfile;                                               
-    outfile.open(fileName.c_str(), std::fstream::out|std::fstream::app);
+    outfile.open(fileName.c_str(), std::fstream::out);
     
     mutex_.Lock();
 
