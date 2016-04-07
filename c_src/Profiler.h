@@ -25,43 +25,40 @@ namespace nifutil {
     class Profiler {
     public:
 
-        /**
-         * Destructor.
-         */
+        struct Counter {
+            int64_t currentCounts_;
+            int64_t deltaCounts_;
+
+            int64_t currentUsec_;
+            int64_t deltaUsec_;
+        };
+        
         virtual ~Profiler();
 
-        void resize(unsigned n);
-        unsigned start(unsigned index);
-        unsigned start(unsigned index, std::string label);
+        unsigned start(std::string& label, bool perThread);
+        void stop(std::string& label, bool perThread);
 
-        void stop(unsigned index, unsigned count=0);
-        void append(std::string fileName);
+        std::string formatStats(bool crTerminated);
+        void dump(std::string fileName);
         void setPrefix(std::string fileName);
+        void debug();
 
+        Counter& getCounter(std::string& label, bool perThread);
+
+        static void noop(bool makeNoop);
         static int64_t getCurrentMicroSeconds();
         static Profiler* get();
+
+        static unsigned profile(std::string command, std::string value, bool always);
+        static unsigned profile(std::string command, std::string value, bool perThread, bool always);
 
     private:
 
         Profiler();
+        std::vector<pthread_t> getThreadIds();
 
-        std::map<pthread_t, std::vector<int64_t>* >     currCounts_;
-        std::map<pthread_t, std::vector<int64_t>* >     deltaCounts_;
+        std::map<std::string, std::map<pthread_t, Counter> > countMap_;
 
-        std::map<pthread_t, std::vector<int64_t>* >     usecCurr_;
-        std::map<pthread_t, std::vector<int64_t>* >     deltas_;
-
-        std::map<pthread_t, std::vector<std::string>* > labels_;
-
-        std::vector<int64_t>*     getCurrCounts();
-        std::vector<int64_t>*     getDeltaCounts();
-
-        std::vector<int64_t>*     getCurr();
-        std::vector<int64_t>*     getDeltas();
-
-        std::vector<std::string>* getLabels();
-
-        unsigned size_;
         unsigned nAccessed_;
 
         static Profiler instance_;
@@ -70,6 +67,8 @@ namespace nifutil {
         unsigned counter_;
         std::string prefix_;
 
+        static bool noop_;
+        
     }; // End class Profiler
 
 } // End namespace nifutil

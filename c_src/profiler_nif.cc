@@ -32,20 +32,23 @@
 #include <algorithm>
 #include <vector>
 
+#include "exceptionutils.h"
 #include "profiler_nif.h"
 
 #include "ErlUtil.h"
 #include "Profiler.h"
 
 #ifndef ATOMS_H
-    #include "atoms.h"
+#include "atoms.h"
 #endif
 
 static ErlNifFunc nif_funcs[] =
 {
     {"profile",        1, profiler::profile},
+    {"profile",        2, profiler::profile},
 };
 
+static bool oldInterface = false;
 
 namespace profiler {
 
@@ -60,108 +63,105 @@ using namespace nifutil;
 
 namespace profiler {
 
-ERL_NIF_TERM profile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-    try {
+    ERL_NIF_TERM profile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+    {
+        try {
 
-        std::vector<ERL_NIF_TERM> cells = ErlUtil::getTupleCells(env, argv[0]);
-        std::string atom  = ErlUtil::formatTerm(env, cells[0]);
-
-        //------------------------------------------------------------
-        // Resize the internal profiler map
-        //------------------------------------------------------------
-        
-        if(atom == "resize") {
-            Profiler::get()->resize(ErlUtil::getValAsUint32(env, cells[1]));
-            return profiler::ATOM_OK;
-        }
-
-        //------------------------------------------------------------
-        // Start a counter
-        //------------------------------------------------------------
-
-        if(atom == "start") {
-            ErlNifUInt64 count=0;
-            if(cells.size() > 2) {
-                count = Profiler::get()->start(ErlUtil::getValAsUint32(env, cells[1]), ErlUtil::getAsString(env, cells[2]));
-            } else {
-                count = Profiler::get()->start(ErlUtil::getValAsUint32(env, cells[1]));
-            }
-            return enif_make_uint64(env, count);
-        }
-
-        //------------------------------------------------------------
-        // Stop a counter
-        //------------------------------------------------------------
-
-        if(atom == "stop") {
-            if(cells.size() > 2)
-                Profiler::get()->stop(ErlUtil::getValAsUint32(env, cells[1]), ErlUtil::getValAsUint32(env, cells[2]));
-            else
-                Profiler::get()->stop(ErlUtil::getValAsUint32(env, cells[1]));
+            bool always = false;
+            if(argc == 2)
+                always = ErlUtil::getBool(env, argv[1]);
             
-            return profiler::ATOM_OK;
+            std::vector<ERL_NIF_TERM> cells = ErlUtil::getTupleCells(env, argv[0]);
+            std::string atom  = ErlUtil::formatTerm(env, cells[0]);
+
+            //------------------------------------------------------------
+            // Make the profiler a no-op
+            //------------------------------------------------------------
+
+            if(atom == "noop") {
+                Profiler::noop(ErlUtil::getBool(env, cells[1]));
+                return profiler::ATOM_OK;
+            }
+
+            if(atom == "old") {
+                oldInterface = ErlUtil::getBool(env, cells[1]);
+                return profiler::ATOM_OK;
+            }
+
+            //------------------------------------------------------------
+            // Output debug information
+            //------------------------------------------------------------
+
+            if(atom == "debug") {
+                Profiler::get()->debug();
+                return profiler::ATOM_OK;
+            }
+
+            //------------------------------------------------------------
+            // start/stop a counter
+            //------------------------------------------------------------
+
+            if(atom == "start" || atom == "stop") {
+                std::string label = ErlUtil::getAsString(env, cells[1]);
+                
+                bool perThread = false;
+                if(cells.size() > 2)
+                    perThread = ErlUtil::getBool(env, cells[2]);
+                
+                ErlNifUInt64 count = Profiler::profile(atom, label, perThread, always);
+                
+                return enif_make_uint64(env, count);
+            }
+
+            //------------------------------------------------------------
+            // dump counters out to disk, or set the prefix dir for output
+            //------------------------------------------------------------
+
+            if(atom == "dump" || atom == "prefix") {
+                Profiler::profile(atom, ErlUtil::getAsString(env, cells[1]), true);
+                return profiler::ATOM_OK;
+            }
+
+            ERL_NIF_TERM msg_str  = enif_make_string(env, "Unexpected atom received", ERL_NIF_LATIN1);
+            return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
+
+        } catch(std::runtime_error& err) {
+            ERL_NIF_TERM msg_str  = enif_make_string(env, err.what(), ERL_NIF_LATIN1);
+            return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
+        } catch(...) {
+            ERL_NIF_TERM msg_str  = enif_make_string(env, "Unhandled exception caught", ERL_NIF_LATIN1);
+            return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
         }
-
-        //------------------------------------------------------------
-        // Dump counters out to disk
-        //------------------------------------------------------------
-
-        if(atom == "dump") {
-            Profiler::get()->append(ErlUtil::getAsString(env, cells[1]));
-            return profiler::ATOM_OK;
-        }
-
-        //------------------------------------------------------------
-        // Set the prefix for output files
-        //------------------------------------------------------------
-
-        if(atom == "prefix") {
-            Profiler::get()->setPrefix(ErlUtil::getAsString(env, cells[1]));
-            return profiler::ATOM_OK;
-        }
-
-	ERL_NIF_TERM msg_str  = enif_make_string(env, "Unexpected atom received", ERL_NIF_LATIN1);
-        return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
-
-    } catch(std::runtime_error& err) {
-	ERL_NIF_TERM msg_str  = enif_make_string(env, err.what(), ERL_NIF_LATIN1);
-        return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
-    } catch(...) {
-	ERL_NIF_TERM msg_str  = enif_make_string(env, "Unhandled exception caught", ERL_NIF_LATIN1);
-        return enif_make_tuple2(env, profiler::ATOM_ERROR, msg_str);
     }
 }
-}
 
-
-static void on_unload(ErlNifEnv *env, void *priv_data)
-{
-}
-
+static void on_unload(ErlNifEnv *env, void *priv_data) {}
 
 static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
-try
 {
-    int ret_val = 0;
-// must initialize atoms before processing options
-#define ATOM(Id, Value) { Id = enif_make_atom(env, Value); }
-    ATOM(profiler::ATOM_OK, "ok");
-    ATOM(profiler::ATOM_ERROR, "error");
-#undef ATOM
-    return ret_val;
-}
+    try {
+        int ret_val = 0;
+        
+        profiler::ATOM_OK    = enif_make_atom(env, "ok");
+        profiler::ATOM_ERROR = enif_make_atom(env, "error");
 
+        try {
+            bool noop = ErlUtil::getBool(env, ErlUtil::getOption(env, load_info, "noop"));
+            Profiler::noop(noop);
+        } catch(...) {
+            Profiler::noop(false);
+        }
+        
+        return ret_val;
 
-catch(std::exception& e)
-{
-    /* Refuse to load the NIF module (I see no way right now to return a more specific exception
-    or log extra information): */
-    return -1;
-}
-catch(...)
-{
-    return -1;
+        // Refuse to load the NIF module (I see no way right now to
+        // return a more specific exception or log extra information):
+        
+    } catch(std::exception& e) {
+        return -1;
+    } catch(...) {
+        return -1;
+    }
 }
 
 extern "C" {
