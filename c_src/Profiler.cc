@@ -11,6 +11,52 @@ using namespace std;
 Profiler Profiler::instance_;
 bool     Profiler::noop_ = false;
 
+Profiler::Counter::Counter()
+{
+    currentCounts_ = 0;
+    deltaCounts_   = 0;
+
+    currentUsec_   = 0;
+    deltaUsec_     = 0;
+
+    state_ = STATE_DONE;
+    errorCountUninitiated_  = 0;
+    errorCountUnterminated_ = 0;
+}
+
+void Profiler::Counter::start(int64_t usec, unsigned count)
+{
+    // Only set the time if the last trigger is done
+    
+    if(state_ == STATE_DONE) {
+        currentUsec_   = usec;
+        state_ = STATE_TRIGGERED;
+    } else {
+        errorCountUnterminated_++;
+    }
+    
+    currentCounts_ = count;
+}
+
+void Profiler::Counter::stop(int64_t usec, unsigned count)
+{
+    // Only increment this counter if it was in fact triggered prior
+    // to this call
+    
+    if(state_ == STATE_TRIGGERED) {
+        deltaUsec_ += (usec - currentUsec_);
+        
+        // Keep track of the number of times the Profiler registers
+        // have been accessed since the current counter was started.
+        
+        deltaCounts_ += (count - currentCounts_);
+
+        state_ = STATE_DONE;
+    } else {
+        errorCountUninitiated_++;
+    }
+}
+
 /**.......................................................................
  * Constructor.
  */
@@ -48,11 +94,8 @@ unsigned Profiler::start(std::string& label, bool perThread)
     mutex_.Lock();
 
     Counter& counter = getCounter(label, perThread);
-    
     count = ++counter_;
-    
-    counter.currentUsec_   = getCurrentMicroSeconds();
-    counter.currentCounts_ = count;
+    counter.start(getCurrentMicroSeconds(), count);
 
     mutex_.Unlock();
     
@@ -67,15 +110,7 @@ void Profiler::stop(std::string& label, bool perThread)
     mutex_.Lock();
 
     Counter& counter = getCounter(label, perThread);
-    
-    int64_t usec = getCurrentMicroSeconds();
-
-    counter.deltaUsec_ += (usec - counter.currentUsec_);
-
-    // Keep track of the number of times the Profiler registers
-    // have been accessed since the current counter was started.
-        
-    counter.deltaCounts_ += (counter_ - counter.currentCounts_);
+    counter.stop(getCurrentMicroSeconds(), counter_);
 
     // counter_ now serves as both a unique incrementing counter,
     // and a count of the number of times the Profiler registers
@@ -201,6 +236,46 @@ std::string Profiler::formatStats(bool term)
         OSTERM(os, term, false, true, std::endl);
     }
     
+    //------------------------------------------------------------
+    // Finally, write out any errors
+    //------------------------------------------------------------
+
+    for(unsigned iThread=0; iThread < threadVec.size(); iThread++) {
+
+        pthread_t id = threadVec[iThread];
+        
+        for(std::map<std::string, std::map<pthread_t, Profiler::Counter> >::iterator iter = countMap_.begin();
+            iter != countMap_.end(); iter++) {
+            std::map<pthread_t, Profiler::Counter>& threadCountMap = iter->second;
+            
+            if(threadCountMap.find(id) != threadCountMap.end()) {
+                Profiler::Counter& counter = threadCountMap[id];
+
+                if(counter.errorCountUninitiated_ > 0) {
+                    OSTERM(os, term, false, true, "WARNING:" 
+                           << " thread 0x" << std::hex << (int64_t)id
+                           << " attempted " << counter.errorCountUninitiated_ << (counter.errorCountUninitiated_ > 1 ? " terminations" : " termination")
+                           << " of counter '" << iter->first << "' without initiation" << std::endl);
+                }
+
+                if(counter.errorCountUnterminated_ > 0) {
+                    OSTERM(os, term, false, true, "WARNING: " 
+                           << "thread 0x" << std::hex << (int64_t)id
+                           << " attempted " << counter.errorCountUnterminated_ << (counter.errorCountUnterminated_ > 1 ? " initiations" : " initiation")
+                           << " of counter '" << iter->first << "' without termination" << std::endl);
+                }
+
+                if(counter.state_ != STATE_DONE) {
+                    OSTERM(os, term, false, true, "WARNING: " 
+                           << "thread 0x" << std::hex << (int64_t)id
+                           << " left counter '" << iter->first << "' unterminated" << std::endl);
+                }
+            }
+        }
+        
+        OSTERM(os, term, false, true, std::endl);
+    }
+
     mutex_.Unlock();
 
     return os.str();

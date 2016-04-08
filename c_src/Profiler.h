@@ -25,12 +25,27 @@ namespace nifutil {
     class Profiler {
     public:
 
+        enum CounterState {
+            STATE_TRIGGERED,
+            STATE_DONE
+        };
+        
         struct Counter {
             int64_t currentCounts_;
             int64_t deltaCounts_;
 
             int64_t currentUsec_;
             int64_t deltaUsec_;
+
+            CounterState state_;
+
+            unsigned errorCountUninitiated_;
+            unsigned errorCountUnterminated_;
+
+            void start(int64_t usec, unsigned count);
+            void stop(int64_t usec, unsigned count);
+            
+            Counter();
         };
         
         virtual ~Profiler();
