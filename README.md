@@ -18,9 +18,9 @@ statistics is output either by command, or by default at process exit.
 ###Examples###
 
 * <a href=#basic>Basic Usage</a>
-* <a href=#perthread>Per-thread Counters</a>
+* <a href=#perthread>Per-Thread Counters</a>
 * <a href=#utilities>Utilities</a>
-* <a href=#noop>Turning profiling off</a>
+* <a href=#noop>Turning Profiling Off</a>
 
 <hr>
 <a name="basic">
@@ -93,7 +93,7 @@ What does these lines mean?
 
 <hr>
 <a name="perthread">
-####Per-thread Counters####
+####Per-Thread Counters####
 
 An extra boolean argument to the ```start``` tuple specifies if the
 counter should be accumulated on a per-thread basis:
