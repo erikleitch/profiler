@@ -6,6 +6,7 @@
 ```profiler``` is a NIF library that provides a simple interface for
 basic profiling of erlang/C++ code.
 
+<hr>
 ###Usage###
 
 At its most basic, ```profiler``` allows you to measure execution time
@@ -14,15 +15,11 @@ process, an arbitrary number of counters can be accumulated, either
 globally or per-thread, and a simple text file with the counter
 statistics is output either by command, or by default at process exit.
 
-<hr>
-###Examples###
-
 * <a href=#basic>Basic Usage</a>
 * <a href=#perthread>Per-Thread Counters</a>
 * <a href=#utilities>Utilities</a>
 * <a href=#noop>Turning Profiling Off</a>
 
-<hr>
 <a name="basic">
 ####Basic Usage####
 
@@ -91,7 +88,6 @@ What does these lines mean?
       globally, this will always be 0x0, else a separate line is
       printed for each thread where counters were invoked**
 
-<hr>
 <a name="perthread">
 ####Per-Thread Counters####
 
@@ -123,7 +119,6 @@ count 0xb0ac5000 0
 usec 0xb0ac5000 6512157 
 ```
 
-<hr>
 <a name=utilities>
 ####Utilities####
 
@@ -137,7 +132,6 @@ usec 0xb0ac5000 6512157
   current directory) at any point interactively, use
   ```profiler:perf_profile({dump, './'}).```
 
-<hr>
 <a name=noop>
 ####Turning Profiling Off####
 
