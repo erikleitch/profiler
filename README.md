@@ -67,13 +67,18 @@ What does these lines mean?
   * ```count 0x0 0```: This is a whitespace-separated list of the
     number of times profiling operations were invoked while the named
     counter was accumulating.  This can be helpful for estimating the
-    contribution of the profiling to each counter.
-    <br>
+    contribution of the profiling to each counter.<br><br>
     **NB** The first (hex) argument after the label ```count``` is a
       thread id (in this case 0x0). If counters are being accumulated
       globally, this will always be 0x0, else a separate line is
       printed for each thread where counters were invoked**
 
-
+  * ```usec 0x0 3855829```: This is a whitespace-separated list of the
+    accumulated time, in micro-seconds, associated with each named counter in the
+    ```label``` line.
+    **NB** The first (hex) argument after the label ```usec``` is a
+      thread id (in this case 0x0). If counters are being accumulated
+      globally, this will always be 0x0, else a separate line is
+      printed for each thread where counters were invoked**
 
 
