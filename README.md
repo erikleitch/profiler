@@ -146,7 +146,7 @@ Profiling can be disabled in-situ in a variety of different ways:
   Note however that a separate interface ```profiler:profile/1``` is
   not controlled by the ```PROFILE``` define, so that profiling can be
   turned off globally, but individual counters can still be activated
-  if desired.
+  if desired, by using ```profiler:profile/1``` instead of ```profiler:perf_profile/1```
 
 * Interactively, via a call to ```profiler:perf_profile({noop, true}).```<br>
 
