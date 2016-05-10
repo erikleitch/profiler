@@ -1,14 +1,26 @@
-# `profiler` - A simple Erlang profiler NIF 
+##`profiler` - A simple Erlang profiler NIF## 
 
-This repository follows the Basho standard for branch management 
-as of November 28, 2013.  The standard is found here:
+<hr>
+###What is profiler?###
 
-https://github.com/basho/riak/wiki/Basho-repository-management
+```profiler``` is a NIF library that provides a simple interface for
+basic profiling of erlang/C++ code.
 
-In summary, the "develop" branch contains the most recently reviewed
-engineering work.  The "master" branch contains the most recently
-released work, i.e. distributed as part of a Riak release.
+###Usage###
 
-NOTE: When adding a new header dependency in the c_src directory,
-make sure you run `make clean` and then `make` in order to ensure
-rebar picks up your new header dependency.
+At its most basic, ```profiler``` allows you to measure execution time
+between arbitrary points in erlang/C++ code.  Within an erlang
+process, an arbitrary number of counters can be accumulated, either
+globally or per-thread, and a simple text file with the counter
+statistics is output either by command, or by default at process exit.
+
+###Examples###
+
+The primary erlang interface to ```profiler``` is the
+```profiler:perf_profile/1``` function.  This takes a tuple of
+arguments, controlling a variety of operations.
+
+```
+Eshell V5.10.3  (abort with ^G)
+1> profiler:perf_profile({prefix, './'}).
+```
