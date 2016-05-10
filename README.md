@@ -19,6 +19,7 @@ statistics is output either by command, or by default at process exit.
 
 * <a href=#basic>Basic Usage</a>
 * <a href=#perthread>Per-thread Counters</a>
+* <a href=#utilities>Other utilities</a>
 
 <hr>
 <a name="basic">
@@ -120,3 +121,18 @@ label 'tag1'
 count 0xb0ac5000 0
 usec 0xb0ac5000 6512157 
 ```
+
+<hr>
+<a name=utilities>
+####Utilities####
+
+* A simple macro ```?FNNAME()``` is provided in ```profiler.hrl``` to
+  return the current function name for use as a counter tag
+
+* To print the current counter stats interactively, along with other
+  debug information, use ```profiler:perf_profile({debug}).```
+
+* To dump the current counter stats to disk (in this example to the
+  current directory) at any point interactively, use
+  ```profiler:perf_profile({dump, './'}).```
+

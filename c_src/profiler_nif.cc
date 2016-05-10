@@ -118,6 +118,8 @@ namespace profiler {
             //------------------------------------------------------------
 
             if(atom == "dump" || atom == "prefix") {
+                if(cells.size() != 2)
+                    ThrowRuntimeError("You must specify a path with the " << atom << " argument");
                 Profiler::profile(atom, ErlUtil::getAsString(env, cells[1]), true);
                 return profiler::ATOM_OK;
             }
