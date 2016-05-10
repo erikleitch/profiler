@@ -125,12 +125,20 @@ namespace nifutil {
 
         static std::string getBinaryAsString(ErlNifEnv* env, ERL_NIF_TERM term);
 
+        // Parse an options list and return an ERL_NIF_TERM
+        // representing the named option.  Throws error if term not an
+        // options list, or option not found
+        
+        static ERL_NIF_TERM getOption(ErlNifEnv* env, ERL_NIF_TERM term, std::string option);
+        
         static int32_t  getValAsInt32(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
         static int64_t  getValAsInt64(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
         static uint32_t getValAsUint32(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
         static uint8_t  getValAsUint8(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
         static uint64_t getValAsUint64(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
         static double   getValAsDouble(ErlNifEnv* env, ERL_NIF_TERM term, bool exact=true);
+
+        static bool     getBool(ErlNifEnv* env, ERL_NIF_TERM term);
 
         static std::string formatTerm(ErlNifEnv* env, ERL_NIF_TERM term, bool binAsString=false);
 

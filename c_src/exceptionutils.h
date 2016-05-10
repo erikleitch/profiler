@@ -6,23 +6,39 @@
 #include <sstream>
 #include <stdexcept>
 
-#define ThrowRuntimeError(text) {\
-    std::ostringstream _macroOs;\
-    _macroOs << text;		\
-    throw std::runtime_error(_macroOs.str());\
-  }
-
-#define ThrowSysError(text) {\
-    std::ostringstream _macroOs;\
-    _macroOs << text;		\
-    throw std::runtime_error(_macroOs.str());\
-  }
-
-#define COUT(text) {\
-    std::ostringstream _macroOs;\
-    _macroOs << text;		\
-    std::cout << '\r' << _macroOs.str() << std::endl << "\r";\
+#define OSTERM(os, term, head, tail, text)               \
+{                                                        \
+    if(term) {                                           \
+        if(head)                                         \
+            os << "\r";                                  \
+        os << text;                                      \
+        if(tail)                                         \
+            os << "\r";                                  \
+    } else {                                             \
+        os << text;                                      \
+    }                                                    \
 }
+
+#define GREEN "\033[32m"
+#define NORM  "\033[0m"
+
+#define ThrowRuntimeError(text) {                       \
+        std::ostringstream _macroOs;                    \
+        _macroOs << text;                               \
+        throw std::runtime_error(_macroOs.str());       \
+    }
+
+#define ThrowSysError(text) {                           \
+        std::ostringstream _macroOs;                    \
+        _macroOs << text;                               \
+        throw std::runtime_error(_macroOs.str());       \
+    }
+
+#define COUT(text) {                                                    \
+        std::ostringstream _macroOs;                                    \
+        _macroOs << text;                                               \
+        std::cout << '\r' << _macroOs.str() << std::endl << "\r";       \
+    }
 
 #define FOUT(text) {                                                    \
         std::fstream outfile;                                           \

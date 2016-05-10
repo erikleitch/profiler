@@ -1,6 +1,7 @@
 #include "ErlUtil.h"
 #include "StringBuf.h"
 
+#include "atoms.h"
 #include "exceptionutils.h"
 
 #include <cctype>
@@ -887,6 +888,26 @@ uint8_t ErlUtil::getValAsUint8(ErlNifEnv* env, ERL_NIF_TERM term, bool exact)
 }
 
 /**.......................................................................
+ * Try to convert the erlang value in term to a boolean
+ */
+bool ErlUtil::getBool(ErlNifEnv* env, ERL_NIF_TERM term)
+{
+    //------------------------------------------------------------
+    // Atoms can be represented as uint8_t if they are boolean values
+    //------------------------------------------------------------
+
+    if(ErlUtil::isAtom(env, term)) {
+        std::string atom = ErlUtil::getAtom(env, term);
+        return atom == "true";
+    }
+
+    ThrowRuntimeError("Erlang value " << formatTerm(env, term) 
+                      << " can't be represented as a bool");
+
+    return false;
+}
+
+/**.......................................................................
  * Try to convert the erlang value in term to a 64-bit unsigned integer
  */
 uint64_t ErlUtil::getValAsUint64(ErlNifEnv* env, ERL_NIF_TERM term, bool exact)
@@ -1192,4 +1213,23 @@ std::string ErlUtil::formatTuple(ErlNifEnv* env, ERL_NIF_TERM term, bool binAsSt
 {
     std::vector<ERL_NIF_TERM> cells = getTupleCells(env, term);
     return formatTupleVec(env, cells, binAsString);
+}
+
+ERL_NIF_TERM ErlUtil::getOption(ErlNifEnv* env, ERL_NIF_TERM term, std::string option)
+{
+    std::vector<ERL_NIF_TERM> options = ErlUtil::getListCells(env, term);
+
+    for(unsigned i=0; i < options.size(); i++) {
+
+        std::vector<ERL_NIF_TERM> keyval = ErlUtil::getTupleCells(env, options[i]);
+
+        if(keyval.size() != 2)
+            ThrowRuntimeError("This does not appear to be a key-value pair: " << formatTerm(env, options[i]));
+
+        if(ErlUtil::getAsString(env, keyval[0]) == option)
+            return keyval[1];
+    }
+
+    ThrowRuntimeError("Option " << option << " not found in: " << formatTerm(env, term));
+    return profiler::ATOM_ERROR;
 }
