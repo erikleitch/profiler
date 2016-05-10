@@ -138,10 +138,10 @@ usec 0xb0ac5000 6512157
 Profiling can be disabled in-situ in a variety of different ways:
 
 * Globally, by commenting out the line ```-define(PROFILE, 1).``` in
-  profiler.hrl and recompiling the module.<br><br>
+  profiler.hrl and recompiling the module.<br>
 
   In this case, all calls to ```profiler:perf_profile/1``` are no-ops,
-  as is the macro ```?FNNAME()```.<br><br>
+  as is the macro ```?FNNAME()```.<br>
 
   Note however that a separate interface ```profiler:profile/1``` is
   not controlled by the ```PROFILE``` define, so that profiling can be
@@ -151,7 +151,7 @@ Profiling can be disabled in-situ in a variety of different ways:
 * Interactively, via a call to ```profiler:perf_profile({noop, true}).```<br><br>
 
   This disables all profiling until ```profiler:perf_profile({noop,
-  false}).``` is issued.<br><br>
+  false}).``` is issued.<br>
 
   The status of the no-op flag is shown when
   ```profiler:perf_profile({debug}).``` is issued.
