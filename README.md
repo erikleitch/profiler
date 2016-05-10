@@ -148,7 +148,7 @@ Profiling can be disabled in-situ in a variety of different ways:
   turned off globally, but individual counters can still be activated
   if desired.
 
-* Interactively, via a call to ```profiler:perf_profile({noop, true}).```<br><br>
+* Interactively, via a call to ```profiler:perf_profile({noop, true}).```<br>
 
   This disables all profiling until ```profiler:perf_profile({noop,
   false}).``` is issued.<br>
