@@ -16,6 +16,7 @@ statistics is output either by command, or by default at process exit.
 
 ###Examples###
 
+####Basic Usage####
 The primary erlang interface to ```profiler``` is the
 ```profiler:perf_profile/1``` function.  This takes a tuple of
 arguments, controlling a variety of operations.
@@ -46,11 +47,13 @@ looks something like this:
 
 ```
 unix_prompt:>cat 0x20872600_profile.txt
+
 totalcount 2
 label 'tag1'
 count 0x0 0
 usec 0x0 3855829
 ```
+
 
 
 
