@@ -20,7 +20,7 @@ The primary erlang interface to ```profiler``` is the
 ```profiler:perf_profile/1``` function.  This takes a tuple of
 arguments, controlling a variety of operations.
 
-For example, to set the output directory for the profiler log:
+For example:
 
 ```
 Eshell V5.10.3  (abort with ^G)
@@ -36,6 +36,10 @@ wait a while...
 0
 4>
 ```
+
+The first line tells ```profiler``` to create its log file in the
+current directory, the second starts a counter named ```tag1```, and
+the last terminates the named counter.
 
 on exit from the erlang shell, profiler will have created a file that
 looks something like this:
