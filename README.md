@@ -17,11 +17,11 @@ statistics is output either by command, or by default at process exit.
 <hr>
 ###Examples###
 
-* <a href=basic>Basic Usage</a>
-* <a href=perthread>Per-thread Counters</a>
+* <a href=#basic>Basic Usage</a>
+* <a href=#perthread>Per-thread Counters</a>
 
 <hr>
-<a name="basic"></a>
+<a name="basic">
 ####Basic Usage####
 
 The primary erlang interface to ```profiler``` is the
@@ -90,7 +90,7 @@ What does these lines mean?
       printed for each thread where counters were invoked**
 
 <hr>
-<a name="perthread"></a>
+<a name="perthread">
 ####Per-thread Counters####
 
 An extra boolean argument to the ```start``` tuple specifies if the
