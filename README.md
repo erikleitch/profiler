@@ -14,9 +14,15 @@ process, an arbitrary number of counters can be accumulated, either
 globally or per-thread, and a simple text file with the counter
 statistics is output either by command, or by default at process exit.
 
+<hr>
 ###Examples###
 
-####Basic Usage####
+* <a href=basic>Basic Usage</a>
+* <a href=perthread>Per-thread Counters</a>
+
+<hr>
+<a name="basic">####Basic Usage####</a>
+
 The primary erlang interface to ```profiler``` is the
 ```profiler:perf_profile/1``` function.  This takes a tuple of
 arguments, controlling a variety of operations.
@@ -82,7 +88,8 @@ What does these lines mean?
       globally, this will always be 0x0, else a separate line is
       printed for each thread where counters were invoked**
 
-####Per-thread Counters####
+<hr>
+<a name="perthread">####Per-thread Counters####
 
 An extra boolean argument to the ```start``` tuple specifies if the
 counter should be accumulated on a per-thread basis:
@@ -102,6 +109,7 @@ wait a while...
 4>
 ```
 
+The file will now record the thread id as well as the elapsed time:
 ```
 unix_prompt:>cat 0x205f2600_profile.txt
 
