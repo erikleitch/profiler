@@ -21,7 +21,8 @@ statistics is output either by command, or by default at process exit.
 * <a href=perthread>Per-thread Counters</a>
 
 <hr>
-<a name="basic">####Basic Usage####</a>
+<a name="basic"></a>
+####Basic Usage####
 
 The primary erlang interface to ```profiler``` is the
 ```profiler:perf_profile/1``` function.  This takes a tuple of
@@ -89,7 +90,8 @@ What does these lines mean?
       printed for each thread where counters were invoked**
 
 <hr>
-<a name="perthread">####Per-thread Counters####
+<a name="perthread"></a>
+####Per-thread Counters####
 
 An extra boolean argument to the ```start``` tuple specifies if the
 counter should be accumulated on a per-thread basis:
