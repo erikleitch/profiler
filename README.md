@@ -43,7 +43,8 @@ current directory, the second starts a counter named ```tag1```, and
 the last terminates the named counter.
 
 on exit from the erlang shell, profiler will have created a file that
-looks something like this:
+looks something like this (the file name is prefixed with the process
+id):
 
 ```
 unix_prompt:>cat 0x20872600_profile.txt
@@ -75,10 +76,37 @@ What does these lines mean?
 
   * ```usec 0x0 3855829```: This is a whitespace-separated list of the
     accumulated time, in micro-seconds, associated with each named counter in the
-    ```label``` line.
+    ```label``` line.  In this case, 3.86 seconds elapsed while the counter was active.<br><br>
     **NB** The first (hex) argument after the label ```usec``` is a
       thread id (in this case 0x0). If counters are being accumulated
       globally, this will always be 0x0, else a separate line is
       printed for each thread where counters were invoked**
 
+####Per-thread Counters####
 
+An extra boolean argument to the ```start``` tuple specifies if the
+counter should be accumulated on a per-thread basis:
+
+```
+Eshell V5.10.3  (abort with ^G)
+1> profiler:perf_profile({prefix, './'}).
+ok
+2> profiler:perf_profile({start, 'tag1', true}).
+```
+
+wait a while...
+
+```
+3> profiler:perf_profile({stop, 'tag1', true}).
+0
+4>
+```
+
+```
+unix_prompt:>cat 0x205f2600_profile.txt
+
+totalcount 2
+label 'tag1'
+count 0xb0ac5000 0
+usec 0xb0ac5000 6512157 
+```
