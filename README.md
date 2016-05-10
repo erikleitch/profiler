@@ -20,7 +20,33 @@ The primary erlang interface to ```profiler``` is the
 ```profiler:perf_profile/1``` function.  This takes a tuple of
 arguments, controlling a variety of operations.
 
+For example, to set the output directory for the profiler log:
+
 ```
 Eshell V5.10.3  (abort with ^G)
 1> profiler:perf_profile({prefix, './'}).
+ok
+2> profiler:perf_profile({start, 'tag1'}).
 ```
+
+wait a while...
+
+```
+3> profiler:perf_profile({stop, 'tag1'}).
+0
+4>
+```
+
+on exit from the erlang shell, profiler will have created a file that
+looks something like this:
+
+```
+unix_prompt:>cat 0x20872600_profile.txt
+totalcount 2
+label 'tag1'
+count 0x0 0
+usec 0x0 3855829
+```
+
+
+
