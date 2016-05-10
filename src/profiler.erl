@@ -60,7 +60,7 @@
 %%
 %% is a no-op, but  
 %% 
-%%     profiler:perf_profile({start, 'mycounter'})
+%%     profiler:profile({start, 'mycounter'})
 %%
 %% is not.
 %%

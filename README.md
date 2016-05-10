@@ -19,7 +19,8 @@ statistics is output either by command, or by default at process exit.
 
 * <a href=#basic>Basic Usage</a>
 * <a href=#perthread>Per-thread Counters</a>
-* <a href=#utilities>Other utilities</a>
+* <a href=#utilities>Utilities</a>
+* <a href=#noop>Turning profiling off</a>
 
 <hr>
 <a name="basic">
@@ -136,3 +137,32 @@ usec 0xb0ac5000 6512157
   current directory) at any point interactively, use
   ```profiler:perf_profile({dump, './'}).```
 
+<hr>
+<a name=noop>
+####Turning Profiling Off####
+
+Profiling can be disabled in-situ in a variety of different ways:
+
+* Globally, by commenting out the line ```-define(PROFILE, 1).``` in
+  profiler.hrl and recompiling the module.<br><br>
+
+  In this case, all calls to ```profiler:perf_profile/1``` are no-ops,
+  as is the macro ```?FNNAME()```.<br><br>
+
+  Note however that a separate interface ```profiler:profile/1``` is
+  not controlled by the ```PROFILE``` define, so that profiling can be
+  turned off globally, but individual counters can still be activated
+  if desired.
+
+* Interactively, via a call to ```profiler:perf_profile({noop, true}).```<br><br>
+
+  This disables all profiling until ```profiler:perf_profile({noop,
+  false}).``` is issued.<br><br>
+
+  The status of the no-op flag is shown when
+  ```profiler:perf_profile({debug}).``` is issued.
+
+
+
+  
+  
