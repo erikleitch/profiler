@@ -54,6 +54,21 @@ count 0x0 0
 usec 0x0 3855829
 ```
 
+What does these lines mean?
+
+  * ```totalcount 2```: ```profiler``` keeps track of the number of times a
+  ```start/stop``` operation was invoked. This can be useful for
+  estimating the total impact of the profiling itself. The first line says
+  that the the total count of profiling operations was 2
+
+  * ```label 'tag1'```: This is a whitespace-separated list of all
+    counter tags that ```profiler``` has accumulated
+
+  * ```count 0x0 0```: This is a whitespace-separated list of the
+    number of times profiling operations were invoked while the named
+    counter was accumulating.  This can be helpful for estimating the
+    contribution of the profiling to each counter. **NB: the first (hex) argument after the label ```count``` is a thread id (in this case 0x0). If counters are being accumulated globally, this will always be 0x0, else a separate line is printed for each thread where counters were invoked**
+
 
 
 
