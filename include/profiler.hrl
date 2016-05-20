@@ -1,6 +1,6 @@
 -export([perf_fnstring/1]).
 
-%%-define(PROFILE, 1).
+-define(PROFILE, 1).
 
 -ifdef(PROFILE).
 -define(FNNAME(), profiler:perf_fnstring(process_info(self(), current_function))).
