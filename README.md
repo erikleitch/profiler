@@ -86,7 +86,7 @@ What do these lines mean?
     **NB** The first (hex) argument after the label ```usec``` is a
       thread id (in this case 0x0). If counters are being accumulated
       globally, this will always be 0x0, else a separate line is
-      printed for each thread where counters were invoked**
+      printed for each thread where counters were invoked
 
 <a name="perthread">
 ####Per-Thread Counters####
