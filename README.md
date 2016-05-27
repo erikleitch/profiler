@@ -61,7 +61,7 @@ count 0x0 0
 usec 0x0 3855829
 ```
 
-What does these lines mean?
+What do these lines mean?
 
   * ```totalcount 2```: ```profiler``` keeps track of the number of times a
   ```start/stop``` operation was invoked. This can be useful for
