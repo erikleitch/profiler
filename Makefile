@@ -17,4 +17,9 @@ compile: deps
 clean:
 	${REBAR} clean
 
+.PHONY: python
+
+python:
+	cd python; make
+
 include tools.mk

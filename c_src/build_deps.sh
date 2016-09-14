@@ -31,31 +31,14 @@ MAKE=${MAKE:-make}
 # Changed "make" to $MAKE
 
 case "$1" in
-    rm-deps)
-        rm -rf leveldb system snappy-$SNAPPY_VSN
-        ;;
-
-    clean)
-        rm -rf system snappy-$SNAPPY_VSN
-        if [ -d leveldb ]; then
-            (cd leveldb && $MAKE clean)
-        fi
-        ;;
-
-    test)
-        export CFLAGS="$CFLAGS -I $BASEDIR/system/include"
-        export CXXFLAGS="$CXXFLAGS -I $BASEDIR/system/include"
-        export LDFLAGS="$LDFLAGS -L$BASEDIR/system/lib"
-        export LD_LIBRARY_PATH="$BASEDIR/system/lib:$LD_LIBRARY_PATH"
-        export LEVELDB_VSN="$LEVELDB_VSN"
-
-        (cd leveldb && $MAKE check)
-
-        ;;
-
     get-deps)
         ;;
 
+    clean)
+	cd ../util; for file in *; do \rm $BASEDIR/$file; done; cd $BASEDIR
+	;;
     *)
+	echo "Copying files"
+	cp ../util/* .
         ;;
 esac
