@@ -82,7 +82,7 @@ int PyParser::getNumberOfDimensions(const PyObject* arr)
 
 int PyParser::getNumberOfDimensions()
 {
-  getNumberOfDimensions(array_);
+  return getNumberOfDimensions(array_);
 }
 
 PyObject* PyParser::getArrayItem(PyObject* arr, Py_ssize_t index)
@@ -104,11 +104,9 @@ PyObject* PyParser::getArrayItem(PyObject* arr, Py_ssize_t index)
     } else if(isTuple(arr)) {
       return PyTuple_GetItem(arr, index); // No new reference.
     }
+  } 
 
-  } else {
-    return arr;
-  }
-
+  return arr;
 }
 
 /**.......................................................................
