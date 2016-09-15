@@ -159,8 +159,8 @@ perf_profile(_Tuple) ->
 %% Module initialization
 %%
 %% On load, the value of NOOP is passed into the module on_load
-%% function, which internally initializes the profiler to do nothing
-%% on calls to profiler:profile()
+%% function, which if true, internally initializes the profiler to do
+%% nothing on calls to profiler:profile()
 %% ------------------------------------------------------------
 -spec init() -> ok | {error, any()}.
 init() ->

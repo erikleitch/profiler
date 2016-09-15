@@ -48,8 +48,6 @@ static ErlNifFunc nif_funcs[] =
     {"profile",        2, profiler::profile},
 };
 
-static bool oldInterface = false;
-
 namespace profiler {
 
     // Atoms (initialized in on_load)
@@ -83,8 +81,47 @@ namespace profiler {
                 return profiler::ATOM_OK;
             }
 
-            if(atom == "old") {
-                oldInterface = ErlUtil::getBool(env, cells[1]);
+            if(atom == "init_atomic_counters") {
+
+                if(ErlUtil::isTuple(env, cells[1])) {
+
+                    std::vector<ERL_NIF_TERM> args = ErlUtil::getTupleCells(env, cells[1]);
+
+                    if(args.size() == 3 && ErlUtil::isList(env, args[0])) {
+
+                        std::vector<ERL_NIF_TERM> list = ErlUtil::getListCells(env, args[0]);
+                        unsigned int bufferSize        = ErlUtil::getValAsUint32(env, args[1]);
+                        uint64_t minorIntervalMs       = ErlUtil::getValAsUint64(env, args[2]);
+
+                        std::map<std::string, std::string> nameMap;
+                        
+                        for(unsigned i=0; i < list.size(); i++) {
+                            std::string name = ErlUtil::getString(env, list[i]);
+                            nameMap[name] = name;
+                        }
+
+                        Profiler::initializeAtomicCounters(nameMap, bufferSize, minorIntervalMs);
+                        
+                        return profiler::ATOM_OK;
+                    }
+                }
+
+                ThrowRuntimeError("Use like: profiler:profile({test, {[\"tag1\", \"tag2\"], bufferSize, intervalMs}})");
+                return profiler::ATOM_ERROR;
+            }
+
+            if(atom == "inc_atomic_counter") {
+                uint64_t partPtr = ErlUtil::getValAsUint64(env, cells[1]);
+                std::string counterName = ErlUtil::getAsString(env, cells[2]);
+                Profiler::incrementAtomicCounter(partPtr, counterName);
+                return profiler::ATOM_OK;
+            }
+
+            if(atom == "add_ring_partition") {
+                uint64_t partPtr = ErlUtil::getValAsUint64(env, cells[1]);
+                std::string leveldbFile = ErlUtil::getAsString(env, cells[2]);
+                COUT("partPTr = " << partPtr << " file = " << leveldbFile);
+                Profiler::addRingPartition(partPtr, leveldbFile);
                 return profiler::ATOM_OK;
             }
 

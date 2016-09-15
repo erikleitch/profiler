@@ -4,12 +4,17 @@
 #include <sstream>
 #include <fstream>
 #include <sys/time.h>
+#include <sys/select.h>
 
 using namespace nifutil;
 using namespace std;
 
 Profiler Profiler::instance_;
 bool     Profiler::noop_ = false;
+
+//=======================================================================
+// Profiler::Counter
+//=======================================================================
 
 Profiler::Counter::Counter()
 {
@@ -57,13 +62,19 @@ void Profiler::Counter::stop(int64_t usec, unsigned count)
     }
 }
 
+//=======================================================================
+// Profiler
+//=======================================================================
+
 /**.......................................................................
  * Constructor.
  */
 Profiler::Profiler() 
 {
-    nAccessed_  = 0;
-    counter_    = 0;
+    nAccessed_            = 0;
+    counter_              = 0;
+    atomicCounterTimerId_ = 0;
+    majorIntervalUs_      = 0;
     
     setPrefix("/tmp/");
 }
@@ -76,6 +87,10 @@ Profiler::~Profiler()
     std::ostringstream os;
     os << prefix_ << "/" << this << "_profile.txt";
     dump(os.str());
+
+    if(atomicCounterTimerId_ != 0) {
+        pthread_kill(atomicCounterTimerId_, SIGKILL);
+    }
 }
 
 Profiler::Counter& Profiler::getCounter(std::string& label, bool perThread)
@@ -382,3 +397,84 @@ unsigned Profiler::profile(std::string command, std::string value, bool perThrea
     return retval;
 }
 
+void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
+{
+    instance_.mutex_.Lock();
+    instance_.atomicCounterMap_[ptr].leveldbFile_ = leveldbFile;
+    instance_.mutex_.Unlock();
+}
+
+void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+                                        uint bufferSize, uint64_t intervalUs. std::string fileName)
+{
+    for(std::map<uint64_t, RingPartition>::iterator part = instance_.atomicCounterMap_.begin();
+        part != instance_.atomicCounterMap_.end(); part++) {
+
+        for(std::map<std::string,std::string>::iterator iter = nameMap.begin(); iter != nameMap.end(); iter++) {
+            part->second.counterMap_[iter->first].setTo(bufferSize, intervalUs);
+        }
+    }
+
+    instance_.atomicCounterOutput_ = fileName;
+    instance_.majorIntervalUs_ = bufferSize * intervalUs;
+    
+    // And start the timer
+    
+    instance_.startAtomicCounterTimer();
+}
+
+void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
+{
+    if(instance_.atomicCounterMap_.find(partPtr) != instance_.atomicCounterMap_.end())
+        instance_.atomicCounterMap_[partPtr].incrementCounter(counterName, getCurrentMicroSeconds());
+}
+
+void Profiler::startAtomicCounterTimer()
+{
+    if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, this) != 0)
+        ThrowRuntimeError("Unable to create timer thread");
+}
+
+void Profiler::dumpAtomicCounters()
+{
+    try {
+        std::fstream outfile;
+        outfile.open(atomicCounterOutput_, std::fstream::out|std::fstream::app);
+        outfile << "Dumping text" << getCurrentMicroSeconds() << std::endl;
+        outfile.close();
+    } catch(...) {
+    }
+}
+
+THREAD_START(Profiler::runAtomicCounterTimer)
+{
+    Profiler* prof = (Profiler*)arg;
+    bool first = true;
+    struct timeval timeout;
+    
+    do {
+
+        // If this is not the first time through the loop, dump out the counters
+        
+        if(!first)
+            prof->dumpAtomicCounters();
+    
+        uint64_t currentMicroSeconds = prof->getCurrentMicroSeconds();
+
+        // How much time remains in the current major interval?
+        
+        uint64_t remainUs = prof->majorIntervalUs_ - (currentMicroSeconds % prof->majorIntervalUs_);
+
+        // We will sleep to the end of this major interval, and halfway through the next.
+        
+        uint64_t sleepUs  = remainUs + prof->majorIntervalUs_/2;
+            
+        timeout.tv_sec  = sleepUs / 1000000;
+        timeout.tv_usec = sleepUs % 1000000;
+
+        first = false;
+
+    } while(select(0, NULL, NULL, NULL, &timeout) == 0);
+
+    return 0;
+}

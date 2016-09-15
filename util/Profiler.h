@@ -20,6 +20,10 @@
 
 #include "mutex.h"
 
+#include "RingPartition.h"
+
+#define THREAD_START(fn) void* (fn)(void *arg)
+
 namespace nifutil {
 
     class Profiler {
@@ -48,6 +52,7 @@ namespace nifutil {
             Counter();
         };
         
+
         virtual ~Profiler();
 
         unsigned start(std::string& label, bool perThread);
@@ -67,21 +72,50 @@ namespace nifutil {
         static unsigned profile(std::string command, std::string value, bool always);
         static unsigned profile(std::string command, std::string value, bool perThread, bool always);
 
+        //------------------------------------------------------------
+        // Time-resolved atomic counters
+        //------------------------------------------------------------
+
+        void startAtomicCounterTimer();
+        void dumpAtomicCounters();
+
+        static void addRingPartition(uint64_t ptr, std::string leveldbFile);
+        
+        static void initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+                                             unsigned int bufferSize, uint64_t intervalMs);
+
+        static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
+
+        static THREAD_START(runAtomicCounterTimer);
+        
     private:
 
         Profiler();
+
+        //------------------------------------------------------------
+        // Members for normal counters
+        //------------------------------------------------------------
+        
         std::vector<pthread_t> getThreadIds();
 
         std::map<std::string, std::map<pthread_t, Counter> > countMap_;
 
         unsigned nAccessed_;
 
-        static Profiler instance_;
-
         Mutex mutex_;
         unsigned counter_;
         std::string prefix_;
 
+        //------------------------------------------------------------
+        // Members for time-resolved atomic counting
+        //------------------------------------------------------------
+        
+        std::map<uint64_t, RingPartition> atomicCounterMap_;
+        pthread_t atomicCounterTimerId_;
+        uint64_t majorIntervalUs_;
+        std::string atomicCounterOutput_;
+        
+        static Profiler instance_;
         static bool noop_;
         
     }; // End class Profiler

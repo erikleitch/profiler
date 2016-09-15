@@ -35,10 +35,14 @@ case "$1" in
         ;;
 
     clean)
+	echo "Got clean argument"
 	cd ../util; for file in *; do \rm $BASEDIR/$file; done; cd $BASEDIR
 	;;
+    test)
+	echo "Got test pattern"
+	;;
     *)
-	echo "Copying files"
+	echo "Copying files ($1)"
 	cp ../util/* .
         ;;
 esac
