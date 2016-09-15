@@ -87,11 +87,12 @@ namespace profiler {
 
                     std::vector<ERL_NIF_TERM> args = ErlUtil::getTupleCells(env, cells[1]);
 
-                    if(args.size() == 3 && ErlUtil::isList(env, args[0])) {
+                    if(args.size() == 4 && ErlUtil::isList(env, args[0])) {
 
                         std::vector<ERL_NIF_TERM> list = ErlUtil::getListCells(env, args[0]);
                         unsigned int bufferSize        = ErlUtil::getValAsUint32(env, args[1]);
                         uint64_t minorIntervalMs       = ErlUtil::getValAsUint64(env, args[2]);
+                        std::string outputFile         = ErlUtil::getString(env, args[3]);
 
                         std::map<std::string, std::string> nameMap;
                         
@@ -100,7 +101,7 @@ namespace profiler {
                             nameMap[name] = name;
                         }
 
-                        Profiler::initializeAtomicCounters(nameMap, bufferSize, minorIntervalMs);
+                        Profiler::initializeAtomicCounters(nameMap, bufferSize, minorIntervalMs, outputFile);
                         
                         return profiler::ATOM_OK;
                     }

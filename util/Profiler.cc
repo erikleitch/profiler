@@ -405,7 +405,7 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
 }
 
 void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
-                                        uint bufferSize, uint64_t intervalUs. std::string fileName)
+                                        uint bufferSize, uint64_t intervalUs, std::string fileName)
 {
     for(std::map<uint64_t, RingPartition>::iterator part = instance_.atomicCounterMap_.begin();
         part != instance_.atomicCounterMap_.end(); part++) {
@@ -439,7 +439,7 @@ void Profiler::dumpAtomicCounters()
 {
     try {
         std::fstream outfile;
-        outfile.open(atomicCounterOutput_, std::fstream::out|std::fstream::app);
+        outfile.open(atomicCounterOutput_.c_str(), std::fstream::out|std::fstream::app);
         outfile << "Dumping text" << getCurrentMicroSeconds() << std::endl;
         outfile.close();
     } catch(...) {

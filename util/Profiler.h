@@ -82,7 +82,8 @@ namespace nifutil {
         static void addRingPartition(uint64_t ptr, std::string leveldbFile);
         
         static void initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
-                                             unsigned int bufferSize, uint64_t intervalMs);
+                                             unsigned int bufferSize, uint64_t intervalMs,
+                                             std::string fileName);
 
         static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
 
