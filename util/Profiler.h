@@ -17,6 +17,7 @@
 #include <vector>
 
 #include <stdint.h>
+#include <inttypes.h>
 
 #include "mutex.h"
 

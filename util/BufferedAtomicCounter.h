@@ -17,6 +17,7 @@
 #endif
 
 #include <vector>
+#include <inttypes.h>
 
 namespace nifutil {
 
