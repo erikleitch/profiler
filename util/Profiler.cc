@@ -1,4 +1,6 @@
 #include "Profiler.h"
+#include "String.h"
+
 #include "exceptionutils.h"
 
 #include <sstream>
@@ -75,6 +77,7 @@ Profiler::Profiler()
     counter_              = 0;
     atomicCounterTimerId_ = 0;
     majorIntervalUs_      = 0;
+    firstDump_            = true;
     
     setPrefix("/tmp/");
 }
@@ -400,27 +403,41 @@ unsigned Profiler::profile(std::string command, std::string value, bool perThrea
 void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
 {
     instance_.mutex_.Lock();
-    instance_.atomicCounterMap_[ptr].leveldbFile_ = leveldbFile;
+    
+    gcp::util::String str(leveldbFile);
+    gcp::util::String base = str.findNextInstanceOf("./data/leveldb/", true, " ", false);
+
+    if(!base.isEmpty()) {
+        instance_.atomicCounterMap_[ptr].leveldbFile_ = base.str();
+    }
+
     instance_.mutex_.Unlock();
 }
 
 void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
                                         uint bufferSize, uint64_t intervalUs, std::string fileName)
 {
-    for(std::map<uint64_t, RingPartition>::iterator part = instance_.atomicCounterMap_.begin();
-        part != instance_.atomicCounterMap_.end(); part++) {
+    instance_.mutex_.Lock();
 
-        for(std::map<std::string,std::string>::iterator iter = nameMap.begin(); iter != nameMap.end(); iter++) {
-            part->second.counterMap_[iter->first].setTo(bufferSize, intervalUs);
+    if(instance_.atomicCounterTimerId_== 0) {
+        
+        for(std::map<uint64_t, RingPartition>::iterator part = instance_.atomicCounterMap_.begin();
+            part != instance_.atomicCounterMap_.end(); part++) {
+            
+            for(std::map<std::string,std::string>::iterator iter = nameMap.begin(); iter != nameMap.end(); iter++) {
+                part->second.counterMap_[iter->first].setTo(bufferSize, intervalUs);
+            }
         }
+        
+        instance_.atomicCounterOutput_ = fileName;
+        instance_.majorIntervalUs_ = bufferSize * intervalUs;
+        
+        // And start the timer
+        
+        instance_.startAtomicCounterTimer();
     }
-
-    instance_.atomicCounterOutput_ = fileName;
-    instance_.majorIntervalUs_ = bufferSize * intervalUs;
     
-    // And start the timer
-    
-    instance_.startAtomicCounterTimer();
+    instance_.mutex_.Unlock();
 }
 
 void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
@@ -431,6 +448,11 @@ void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
 
 void Profiler::startAtomicCounterTimer()
 {
+    std::fstream outfile;
+    outfile.open("/tmp/profilerMetaData.txt", std::fstream::out|std::fstream::app);
+    outfile << pthread_self() << " Initiating timer thread" << std::endl;
+    outfile.close();
+    
     if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, this) != 0)
         ThrowRuntimeError("Unable to create timer thread");
 }
@@ -439,9 +461,42 @@ void Profiler::dumpAtomicCounters()
 {
     try {
         std::fstream outfile;
+        std::ostringstream os;
+
         outfile.open(atomicCounterOutput_.c_str(), std::fstream::out|std::fstream::app);
-        outfile << "Dumping text" << getCurrentMicroSeconds() << std::endl;
+
+        uint64_t timestamp = (getCurrentMicroSeconds()/majorIntervalUs_ - 1) * majorIntervalUs_;
+
+        //------------------------------------------------------------
+        // If this is the first time we've written to the output file,
+        // generate a header
+        //------------------------------------------------------------
+        
+        if(firstDump_) {
+
+            outfile << "partitions: ";
+            for(std::map<uint64_t, RingPartition>::iterator iter=atomicCounterMap_.begin();
+                iter != atomicCounterMap_.end(); iter++)
+                outfile << iter->second.leveldbFile_ << " ";
+            outfile << std::endl;
+
+            outfile << "tags: " << atomicCounterMap_.begin()->second.listTags() << std::endl;
+            
+            firstDump_ = false;
+        }
+
+        //------------------------------------------------------------
+        // Now dump out all counters for this timestamp
+        //------------------------------------------------------------
+
+        outfile << timestamp << ": ";
+        for(std::map<uint64_t, RingPartition>::iterator iter=atomicCounterMap_.begin();
+            iter != atomicCounterMap_.end(); iter++)
+            outfile << iter->second.dumpCounters(timestamp);
+        outfile << std::endl;
+        
         outfile.close();
+        
     } catch(...) {
     }
 }

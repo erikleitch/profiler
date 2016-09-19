@@ -47,6 +47,7 @@ namespace nifutil {
 
     void setTo(uint bufferSize, uint64_t intervalMs);
     void increment(uint64_t currentMicroSeconds);
+    std::string dump(uint64_t currentMicroSeconds);
     
     /**
      * Destructor.

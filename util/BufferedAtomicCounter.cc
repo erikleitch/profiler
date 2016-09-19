@@ -1,6 +1,8 @@
 #include "BufferedAtomicCounter.h"
 #include "exceptionutils.h"
 
+#include <sstream>
+
 using namespace std;
 
 using namespace nifutil;
@@ -94,5 +96,26 @@ void BufferedAtomicCounter::increment(uint64_t currentMicroSeconds)
     counters_[majorInd][minorInd].increment();
 }
 
+std::string BufferedAtomicCounter::dump(uint64_t currentMicroSeconds)
+{
+    //------------------------------------------------------------
+    // Which buffer are we currently dumping? (Are we in an even
+    // or odd major interval since an absolute second boundary?)
+    //------------------------------------------------------------
+
+    std::ostringstream os;
+    
+    uint majorInd = (currentMicroSeconds / majorIntervalMs_ + 1) % 2;
+    std::vector<AtomicCounter>& vec = counters_[majorInd];
+    for(unsigned i=0; i < vec.size(); i++) {
+        os << vec[i].counts_ << " ";
+
+        // And zero the counter
+        
+        vec[i].counts_ = 0;
+    }
+
+    return os.str();
+}
 
     

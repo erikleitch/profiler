@@ -33,6 +33,8 @@ namespace nifutil {
         virtual ~RingPartition();
 
         void incrementCounter(std::string name, uint64_t currentUs);
+        std::string dumpCounters(uint64_t currentUs);
+        std::string listTags();
         
         std::string leveldbFile_;
         std::map<std::string, BufferedAtomicCounter> counterMap_;
