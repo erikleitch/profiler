@@ -168,12 +168,12 @@ init() ->
                  {error, bad_name} ->
 		     case code:which(?MODULE) of
                          Filename when is_list(Filename) ->
-			     filename:join([filename:dirname(Filename),"../priv", "profiler"]);
+			     filename:join([filename:dirname(Filename),"../priv", "libprofiler"]);
 			 _ ->
-                             filename:join("../priv", "profiler")
+                             filename:join("../priv", "libprofiler")
                      end;
                  Dir ->
-                     filename:join(Dir, "profiler")
+                     filename:join(Dir, "libprofiler")
              end,
     erlang:load_nif(SoName, [{noop, ?NOOP}, {opts, application:get_all_env(profiler)}]).
 
