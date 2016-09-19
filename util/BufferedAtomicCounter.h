@@ -14,8 +14,6 @@
  */
 #ifdef __APPLE__
 #include <CoreServices/CoreServices.h>
-#else
-#include <asm/atomic.h>
 #endif
 
 #include <vector>
@@ -33,7 +31,7 @@ namespace nifutil {
 #ifdef __APPLE__
         int counts_;
 #else
-        atomic_t counts_;
+        uint32_t counts_;
 #endif
         AtomicCounter();
         void increment();
