@@ -43,7 +43,7 @@ namespace nifutil {
     BufferedAtomicCounter();
     BufferedAtomicCounter(uint bufferSize, uint64_t intervalMs);
 
-    void setTo(uint bufferSize, uint64_t intervalMs);
+    void setTo(unsigned int bufferSize, uint64_t intervalMs);
     void increment(uint64_t currentMicroSeconds);
     std::string dump(uint64_t currentMicroSeconds);
     
