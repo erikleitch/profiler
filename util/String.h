@@ -186,7 +186,9 @@ namespace gcp {
       static std::vector<char> constructCharVec(std::string& str);
 
     }; // End class String
-    
+
+    std::ostream& operator<<(std::ostream& os, String str);
+
   } // End namespace util
 } // End namespace gcp
 

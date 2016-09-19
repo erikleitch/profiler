@@ -78,13 +78,13 @@ void BufferedAtomicCounter::increment(uint64_t currentMicroSeconds)
     // or odd major interval since an absolute second boundary?)
     //------------------------------------------------------------
 
-    uint majorInd = (currentMicroSeconds / majorIntervalMs_ ) % 2;
+    unsigned int majorInd = (currentMicroSeconds / majorIntervalMs_ ) % 2;
 
     //------------------------------------------------------------
     // Which minor interval in the current major interval are we in?
     //------------------------------------------------------------
 
-    uint minorInd = (currentMicroSeconds % majorIntervalMs_) / minorIntervalMs_;
+    unsigned int minorInd = (currentMicroSeconds % majorIntervalMs_) / minorIntervalMs_;
 
     COUT("Current MS = " << currentMicroSeconds << " major = " << majorIntervalMs_ << " majorInd = " << majorInd << " minorInd = " << minorInd);
 
@@ -105,7 +105,7 @@ std::string BufferedAtomicCounter::dump(uint64_t currentMicroSeconds)
 
     std::ostringstream os;
     
-    uint majorInd = (currentMicroSeconds / majorIntervalMs_ + 1) % 2;
+    unsigned int majorInd = (currentMicroSeconds / majorIntervalMs_ + 1) % 2;
     std::vector<AtomicCounter>& vec = counters_[majorInd];
     for(unsigned i=0; i < vec.size(); i++) {
         os << vec[i].counts_ << " ";

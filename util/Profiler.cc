@@ -5,6 +5,8 @@
 
 #include <sstream>
 #include <fstream>
+#include <signal.h>
+
 #include <sys/time.h>
 #include <sys/select.h>
 
@@ -415,7 +417,7 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
 }
 
 void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
-                                        uint bufferSize, uint64_t intervalUs, std::string fileName)
+                                        unsigned int bufferSize, uint64_t intervalUs, std::string fileName)
 {
     instance_.mutex_.Lock();
 

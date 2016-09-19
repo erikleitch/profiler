@@ -16,6 +16,7 @@
 #include <CoreServices/CoreServices.h>
 #endif
 
+#include <string>
 #include <vector>
 #include <inttypes.h>
 
@@ -42,7 +43,7 @@ namespace nifutil {
      * Constructor.
      */
     BufferedAtomicCounter();
-    BufferedAtomicCounter(uint bufferSize, uint64_t intervalMs);
+    BufferedAtomicCounter(unsigned int bufferSize, uint64_t intervalMs);
 
     void setTo(unsigned int bufferSize, uint64_t intervalMs);
     void increment(uint64_t currentMicroSeconds);
