@@ -424,7 +424,7 @@ void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& name
 {
     instance_.mutex_.Lock();
 
-    FOUT("About to initializeAtomicCounter with id = " <<  instance_.atomicCounterTimerId_);
+    FOUT("About to initializeAtomicCounter with id = " <<  instance_.atomicCounterTimerId_ << " and filename = " << fileName);
     
     if(instance_.atomicCounterTimerId_== 0) {
         
@@ -473,9 +473,10 @@ void Profiler::dumpAtomicCounters()
         if(atomicCounterMap_.begin() != atomicCounterMap_.end()) {
             std::fstream outfile;
             std::ostringstream os;
-            
+
+            FOUT("About to open output file: " << atomicCounterOutput_);
             outfile.open(atomicCounterOutput_.c_str(), std::fstream::out|std::fstream::app);
-            
+            FOUT("About to open output file: " << atomicCounterOutput_ << ".. success");
             uint64_t timestamp = (getCurrentMicroSeconds()/majorIntervalUs_ - 1) * majorIntervalUs_;
             
             //------------------------------------------------------------
@@ -510,6 +511,7 @@ void Profiler::dumpAtomicCounters()
         }
         
     } catch(...) {
+        FOUT("About to open output file: " << atomicCounterOutput_ << ".. error");
     }
 }
 
