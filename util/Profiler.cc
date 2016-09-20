@@ -462,42 +462,44 @@ void Profiler::startAtomicCounterTimer()
 void Profiler::dumpAtomicCounters()
 {
     try {
-        std::fstream outfile;
-        std::ostringstream os;
-
-        outfile.open(atomicCounterOutput_.c_str(), std::fstream::out|std::fstream::app);
-
-        uint64_t timestamp = (getCurrentMicroSeconds()/majorIntervalUs_ - 1) * majorIntervalUs_;
-
-        //------------------------------------------------------------
-        // If this is the first time we've written to the output file,
-        // generate a header
-        //------------------------------------------------------------
-        
-        if(firstDump_) {
-
-            outfile << "partitions: ";
+        if(atomicCounterMap_.begin() != atomicCounterMap_.end()) {
+            std::fstream outfile;
+            std::ostringstream os;
+            
+            outfile.open(atomicCounterOutput_.c_str(), std::fstream::out|std::fstream::app);
+            
+            uint64_t timestamp = (getCurrentMicroSeconds()/majorIntervalUs_ - 1) * majorIntervalUs_;
+            
+            //------------------------------------------------------------
+            // If this is the first time we've written to the output file,
+            // generate a header
+            //------------------------------------------------------------
+            
+            if(firstDump_) {
+                
+                outfile << "partitions: ";
+                for(std::map<uint64_t, RingPartition>::iterator iter=atomicCounterMap_.begin();
+                    iter != atomicCounterMap_.end(); iter++)
+                    outfile << iter->second.leveldbFile_ << " ";
+                outfile << std::endl;
+                
+                outfile << "tags: " << atomicCounterMap_.begin()->second.listTags() << std::endl;
+                
+                firstDump_ = false;
+            }
+            
+            //------------------------------------------------------------
+            // Now dump out all counters for this timestamp
+            //------------------------------------------------------------
+            
+            outfile << timestamp << ": ";
             for(std::map<uint64_t, RingPartition>::iterator iter=atomicCounterMap_.begin();
                 iter != atomicCounterMap_.end(); iter++)
-                outfile << iter->second.leveldbFile_ << " ";
+                outfile << iter->second.dumpCounters(timestamp);
             outfile << std::endl;
-
-            outfile << "tags: " << atomicCounterMap_.begin()->second.listTags() << std::endl;
             
-            firstDump_ = false;
+            outfile.close();
         }
-
-        //------------------------------------------------------------
-        // Now dump out all counters for this timestamp
-        //------------------------------------------------------------
-
-        outfile << timestamp << ": ";
-        for(std::map<uint64_t, RingPartition>::iterator iter=atomicCounterMap_.begin();
-            iter != atomicCounterMap_.end(); iter++)
-            outfile << iter->second.dumpCounters(timestamp);
-        outfile << std::endl;
-        
-        outfile.close();
         
     } catch(...) {
     }
