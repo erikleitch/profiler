@@ -459,6 +459,8 @@ void Profiler::startAtomicCounterTimer()
     outfile.open("/tmp/profilerMetaData.txt", std::fstream::out|std::fstream::app);
     outfile << pthread_self() << " Initiating timer thread" << std::endl;
     outfile.close();
+
+    FOUT("Creating timer thread with this = " << this);
     
     if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, this) != 0)
         ThrowRuntimeError("Unable to create timer thread");
@@ -468,7 +470,7 @@ void Profiler::dumpAtomicCounters()
 {
     try {
 
-        FOUT("Inside dumpAtomicCounters" << (atomicCounterMap_.begin() == atomicCounterMap_.end()) << " size = " << instance_.atomicCounterMap_.size());
+        FOUT("Inside dumpAtomicCounters" << (atomicCounterMap_.begin() == atomicCounterMap_.end()) << " size = " << instance_.atomicCounterMap_.size() << " this = " << this);
         
         if(atomicCounterMap_.begin() != atomicCounterMap_.end()) {
             std::fstream outfile;
