@@ -409,7 +409,10 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
     gcp::util::String str(leveldbFile);
     gcp::util::String base = str.findNextInstanceOf("./data/leveldb/", true, " ", false);
 
+    FOUT("About  to add counter with base = " << base);
+
     if(!base.isEmpty()) {
+        FOUT("Adding counter with base = " << base);
         instance_.atomicCounterMap_[ptr].leveldbFile_ = base.str();
     }
 
@@ -421,6 +424,8 @@ void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& name
 {
     instance_.mutex_.Lock();
 
+    FOUT("About to initializeAtomicCounter with id = " <<  instance_.atomicCounterTimerId_);
+    
     if(instance_.atomicCounterTimerId_== 0) {
         
         for(std::map<uint64_t, RingPartition>::iterator part = instance_.atomicCounterMap_.begin();
@@ -462,6 +467,9 @@ void Profiler::startAtomicCounterTimer()
 void Profiler::dumpAtomicCounters()
 {
     try {
+
+        FOUT("Inside dumpAtomicCounters" << (atomicCounterMap_.begin() != atomicCounterMap_.end()));
+        
         if(atomicCounterMap_.begin() != atomicCounterMap_.end()) {
             std::fstream outfile;
             std::ostringstream os;
