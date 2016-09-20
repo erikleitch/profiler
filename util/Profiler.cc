@@ -460,9 +460,10 @@ void Profiler::startAtomicCounterTimer()
     outfile << pthread_self() << " Initiating timer thread" << std::endl;
     outfile.close();
 
-    FOUT("Creating timer thread with this = " << this);
+    FOUT("Creating timer thread with this = " << this << " instance size = " << instance_.atomicCounterMap_.size());
+
     
-    if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, this) != 0)
+    if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, &instance_) != 0)
         ThrowRuntimeError("Unable to create timer thread");
 }
 
@@ -519,7 +520,7 @@ void Profiler::dumpAtomicCounters()
 
 THREAD_START(Profiler::runAtomicCounterTimer)
 {
-    Profiler* prof = &instance_;
+    Profiler* prof = (Profiler*)arg;
     bool first = true;
     struct timeval timeout;
     
