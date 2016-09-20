@@ -413,7 +413,7 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
 
     if(!base.isEmpty()) {
         instance_.atomicCounterMap_[ptr].leveldbFile_ = base.str();
-        FOUT("Added counter with base = " << base << " size = " << instance_.atomicCounterMap_.size());
+        FOUT("Added counter with base = " << base << " size = " << instance_.atomicCounterMap_.size() << " instance = " << &instance_);
     }
 
     instance_.mutex_.Unlock();
@@ -460,7 +460,7 @@ void Profiler::startAtomicCounterTimer()
     outfile << pthread_self() << " Initiating timer thread" << std::endl;
     outfile.close();
 
-    FOUT("Creating timer thread with this = " << this << " instance size = " << instance_.atomicCounterMap_.size());
+    FOUT("Creating timer thread with instance = " << &instance_ << " instance size = " << instance_.atomicCounterMap_.size());
 
     
     if(pthread_create(&atomicCounterTimerId_, NULL, &runAtomicCounterTimer, &instance_) != 0)
