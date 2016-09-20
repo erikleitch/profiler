@@ -519,7 +519,7 @@ void Profiler::dumpAtomicCounters()
 
 THREAD_START(Profiler::runAtomicCounterTimer)
 {
-    Profiler* prof = (Profiler*)arg;
+    Profiler* prof = &instance_;
     bool first = true;
     struct timeval timeout;
     
