@@ -13,6 +13,7 @@ rm-deps:
 
 compile: deps
 	${REBAR} compile
+	cp priv/libprofiler.so ${BASHO_PERF_ROOT}
 
 clean:
 	${REBAR} clean
