@@ -412,8 +412,8 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
     FOUT("About  to add counter with base = " << base);
 
     if(!base.isEmpty()) {
-        FOUT("Adding counter with base = " << base);
         instance_.atomicCounterMap_[ptr].leveldbFile_ = base.str();
+        FOUT("Added counter with base = " << base << " size = " << instance_.atomicCounterMap_.size());
     }
 
     instance_.mutex_.Unlock();
@@ -468,7 +468,7 @@ void Profiler::dumpAtomicCounters()
 {
     try {
 
-        FOUT("Inside dumpAtomicCounters" << (atomicCounterMap_.begin() != atomicCounterMap_.end()));
+        FOUT("Inside dumpAtomicCounters" << (atomicCounterMap_.begin() == atomicCounterMap_.end()) << " size = " << instance_.atomicCounterMap_.size());
         
         if(atomicCounterMap_.begin() != atomicCounterMap_.end()) {
             std::fstream outfile;
