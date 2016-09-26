@@ -16,14 +16,13 @@ BufferedAtomicCounter::AtomicCounter::AtomicCounter()
 #ifdef __APPLE__
     counts_ = 0;
 #else
-    __sync_fetch_and_sub(&counts_, 0);
+    counts_ = 0;
 #endif
 }
 
 void BufferedAtomicCounter::AtomicCounter::increment()
 {
 #ifdef __APPLE__
-//    IncrementAtomic(&counts_);
     OSAtomicIncrement32(&counts_);
 #else
     __sync_fetch_and_add(&counts_, 1);
