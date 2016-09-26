@@ -608,7 +608,7 @@ bool String::isValidPowerExpression()
     if(errno==EINVAL)
       return false;
 
-    COUT("Found valid power expression with base = " << base << " expnt = " << expnt);
+    COUT("Found valid power expression with base = " << base << " expnt = " << expnt << " expntVal = " << expntVal << " baseVal = " << baseVal);
     return true;
   }
 
@@ -689,7 +689,6 @@ String String::findNextStringSeparatedByChars(std::string separators,
 					      bool matchEndOfString)
 {
   String retStr("");
-  unsigned iStart=0, iStop=0;
   unsigned iEl=0;
 
   for(iEl=iStart_; iEl < str_.size(); iEl++) {

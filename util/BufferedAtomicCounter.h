@@ -13,7 +13,8 @@
  * @author /bin/bash: username: command not found
  */
 #ifdef __APPLE__
-#include <CoreServices/CoreServices.h>
+//#include <CoreServices/CoreServices.h>
+#include <libkern/OSAtomic.h>
 #endif
 
 #include <string>
