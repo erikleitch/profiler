@@ -1,0 +1,44 @@
+﻿Build started 8/22/2017 12:00:05 PM.
+     1>Project "C:\Work\git\profiler\profiler\profiler\profiler.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /Od /D _DEBUG /D _WINDOWS /D _USRDLL /D PROFILER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"x64\Debug\profiler.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /Od /D _DEBUG /D _WINDOWS /D _USRDLL /D PROFILER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Debug\profiler.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt BufferedAtomicCounter.cpp Functions.cpp Mutex.cpp Profiler.cpp RingPartition.cpp String.cpp StringBuf.cpp
+         StringBuf.cpp
+     1>c:\work\git\profiler\profiler\profiler\StringBuf.h(90): warning C4521: 'profiler::StringBuf' : multiple copy constructors specified
+     1>c:\work\git\profiler\profiler\profiler\StringBuf.h(90): warning C4522: 'profiler::StringBuf' : multiple assignment operators specified
+         String.cpp
+     1>String.cpp(80): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(270): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(708): warning C4267: '=' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(746): warning C4267: 'return' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(904): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(928): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned int', possible loss of data
+     1>String.cpp(959): warning C4267: 'initializing' : conversion from 'size_t' to 'unsigned int', possible loss of data
+         RingPartition.cpp
+         Profiler.cpp
+     1>Profiler.cpp(584): warning C4244: '=' : conversion from 'uint64_t' to 'long', possible loss of data
+         Mutex.cpp
+         Functions.cpp
+         BufferedAtomicCounter.cpp
+     1>BufferedAtomicCounter.cpp(90): warning C4244: 'initializing' : conversion from 'uint64_t' to 'unsigned int', possible loss of data
+         Generating Code...
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /Od /D _DEBUG /D _WINDOWS /D _USRDLL /D PROFILER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt dllmain.cpp
+         dllmain.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Work\git\profiler\profiler\x64\Debug\profiler.dll" /INCREMENTAL /NOLOGO Ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"C:\Work\git\profiler\profiler\x64\Debug\profiler.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Work\git\profiler\profiler\x64\Debug\profiler.lib" /MACHINE:X64 /DLL x64\Debug\BufferedAtomicCounter.obj
+         x64\Debug\dllmain.obj
+         x64\Debug\Functions.obj
+         x64\Debug\Mutex.obj
+         x64\Debug\Profiler.obj
+         x64\Debug\RingPartition.obj
+         x64\Debug\stdafx.obj
+         x64\Debug\String.obj
+         x64\Debug\StringBuf.obj
+            Creating library C:\Work\git\profiler\profiler\x64\Debug\profiler.lib and object C:\Work\git\profiler\profiler\x64\Debug\profiler.exp
+         profiler.vcxproj -> C:\Work\git\profiler\profiler\x64\Debug\profiler.dll
+     1>Done Building Project "C:\Work\git\profiler\profiler\profiler\profiler.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.85
