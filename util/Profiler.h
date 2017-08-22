@@ -1,7 +1,7 @@
 // $Id: $
 
-#ifndef NIFUTIL_PROFILER_H
-#define NIFUTIL_PROFILER_H
+#ifndef PROFILER_PROFILER_H
+#define PROFILER_PROFILER_H
 
 /**
  * @file Profiler.h
@@ -12,6 +12,7 @@
  * 
  * @author /bin/bash: username: command not found
  */
+
 #include <string>
 #include <map>
 #include <vector>
@@ -19,13 +20,31 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include "mutex.h"
-
+#include "Mutex.h"
 #include "RingPartition.h"
 
-#define THREAD_START(fn) void* (fn)(void *arg)
+//------------------------------------------------------------
+// Platform-specific defs go here
+//------------------------------------------------------------
 
-namespace nifutil {
+#ifndef _WIN32
+
+#define THREAD_START(fn) void* (fn)(void *arg)
+#define thread_self pthread_self
+typedef pthread_t thread_id;
+
+#else
+#include <windows.h>
+
+#define THREAD_START(fn) DWORD WINAPI (fn)(LPVOID arg)
+#define thread_self GetCurrentThreadId
+typedef DWORD thread_id;
+
+#endif
+
+#include "export.h"
+
+namespace profiler {
 
     class Profiler {
     public:
@@ -54,41 +73,45 @@ namespace nifutil {
         };
         
 
-        virtual ~Profiler();
+        PROFILER_API virtual ~Profiler();
 
-        unsigned start(std::string& label, bool perThread);
-        void stop(std::string& label, bool perThread);
+        PROFILER_API unsigned start(std::string& label, bool perThread);
+        PROFILER_API void stop(std::string& label, bool perThread);
 
-        std::string formatStats(bool crTerminated);
-        void dump(std::string fileName);
-        void setPrefix(std::string fileName);
-        void debug();
+        PROFILER_API std::string formatStats(bool crTerminated);
+        PROFILER_API void dump(std::string fileName);
+        PROFILER_API void setPrefix(std::string fileName);
+        PROFILER_API void debug();
 
-        Counter& getCounter(std::string& label, bool perThread);
+        PROFILER_API Counter& getCounter(std::string& label, bool perThread);
 
-        static void noop(bool makeNoop);
-        static int64_t getCurrentMicroSeconds();
-        static Profiler* get();
+        PROFILER_API static void noop(bool makeNoop);
+        PROFILER_API static int64_t getCurrentMicroSeconds();
+        PROFILER_API static Profiler* get();
 
-        static unsigned profile(std::string command, std::string value, bool always);
-        static unsigned profile(std::string command, std::string value, bool perThread, bool always);
+        PROFILER_API static unsigned profile(std::string command, bool perThread=false, bool always=false);
+        PROFILER_API static unsigned profile(std::string command, std::string value, bool perThread=false, bool always=false);
 
         //------------------------------------------------------------
         // Time-resolved atomic counters
         //------------------------------------------------------------
 
-        void startAtomicCounterTimer();
-        void dumpAtomicCounters();
+        PROFILER_API void startAtomicCounterTimer();
+        PROFILER_API void dumpAtomicCounters();
 
-        static void addRingPartition(uint64_t ptr, std::string leveldbFile);
+        PROFILER_API static void addRingPartition(uint64_t ptr, std::string leveldbFile);
         
-        static void initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+        PROFILER_API static void initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
                                              unsigned int bufferSize, uint64_t intervalMs,
                                              std::string fileName);
 
-        static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
+        PROFILER_API static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
 
+#ifndef _WIN32
         static THREAD_START(runAtomicCounterTimer);
+#else
+        static DWORD WINAPI runAtomicCounterTimer(LPVOID arg);
+#endif
         
     private:
 
@@ -98,9 +121,8 @@ namespace nifutil {
         // Members for normal counters
         //------------------------------------------------------------
         
-        std::vector<pthread_t> getThreadIds();
-
-        std::map<std::string, std::map<pthread_t, Counter> > countMap_;
+        std::vector<thread_id> getThreadIds();
+        std::map<std::string, std::map<thread_id, Counter> > countMap_;
 
         unsigned nAccessed_;
 
@@ -113,7 +135,9 @@ namespace nifutil {
         //------------------------------------------------------------
         
         std::map<uint64_t, RingPartition> atomicCounterMap_;
-        pthread_t atomicCounterTimerId_;
+
+        thread_id atomicCounterTimerId_;
+
         uint64_t majorIntervalUs_;
         std::string atomicCounterOutput_;
         bool firstDump_;
@@ -123,8 +147,8 @@ namespace nifutil {
         
     }; // End class Profiler
 
-} // End namespace nifutil
+} // End namespace profiler
 
 
 
-#endif // End #ifndef NIFUTIL_PROFILER_H
+#endif // End #ifndef PROFILER_PROFILER_H

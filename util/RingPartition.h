@@ -1,7 +1,7 @@
 // $Id: $
 
-#ifndef NIFUTIL_RINGPARTITION_H
-#define NIFUTIL_RINGPARTITION_H
+#ifndef PROFILER_RINGPARTITION_H
+#define PROFILER_RINGPARTITION_H
 
 /**
  * @file RingPartition.h
@@ -18,7 +18,9 @@
 #include <string>
 #include <inttypes.h>
 
-namespace nifutil {
+#include "export.h"
+
+namespace profiler {
 
     class RingPartition {
     public:
@@ -26,24 +28,24 @@ namespace nifutil {
         /**
          * Constructor.
          */
-        RingPartition();
+        PROFILER_API RingPartition();
 
         /**
          * Destructor.
          */
-        virtual ~RingPartition();
+        PROFILER_API virtual ~RingPartition();
 
-        void incrementCounter(std::string name, uint64_t currentUs);
-        std::string dumpCounters(uint64_t currentUs);
-        std::string listTags();
+        PROFILER_API void incrementCounter(std::string name, uint64_t currentUs);
+        PROFILER_API std::string dumpCounters(uint64_t currentUs);
+        PROFILER_API std::string listTags();
         
         std::string leveldbFile_;
         std::map<std::string, BufferedAtomicCounter> counterMap_;
         
     }; // End class RingPartition
 
-} // End namespace nifutil
+} // End namespace profiler
 
 
 
-#endif // End #ifndef NIFUTIL_RINGPARTITION_H
+#endif // End #ifndef PROFILER_RINGPARTITION_H

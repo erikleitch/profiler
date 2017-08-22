@@ -1,7 +1,7 @@
 // $Id: $
 
-#ifndef NIFUTIL_STRINGBUF_H
-#define NIFUTIL_STRINGBUF_H
+#ifndef PROFILER_STRINGBUF_H
+#define PROFILER_STRINGBUF_H
 
 #define STRING_BUF_MIN_SIZE 1024
 
@@ -19,9 +19,11 @@
 
 #include <string>
 
-namespace nifutil {
+#include "export.h"
 
-    class StringBuf {
+namespace profiler {
+
+    class PROFILER_API StringBuf {
     public:
         
         // Constructors
@@ -34,7 +36,7 @@ namespace nifutil {
         StringBuf(const StringBuf& buf);
         StringBuf(StringBuf& buf);
 
-        virtual ~StringBuf();
+        virtual  ~StringBuf();
 
         // Assignment operators
 
@@ -87,8 +89,8 @@ namespace nifutil {
 
     }; // End class StringBuf
 
-} // End namespace nifutil
+} // End namespace profiler
 
 
 
-#endif // End #ifndef NIFUTIL_STRINGBUF_H
+#endif // End #ifndef PROFILER_STRINGBUF_H

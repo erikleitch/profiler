@@ -1,7 +1,7 @@
 // $Id: $
 
-#ifndef NIFUTIL_BUFFEREDATOMICCOUNTER_H
-#define NIFUTIL_BUFFEREDATOMICCOUNTER_H
+#ifndef PROFILER_BUFFEREDATOMICCOUNTER_H
+#define PROFILER_BUFFEREDATOMICCOUNTER_H
 
 /**
  * @file BufferedAtomicCounter.h
@@ -20,51 +20,55 @@
 #include <vector>
 #include <inttypes.h>
 
-namespace nifutil {
+#include "export.h"
 
-  class BufferedAtomicCounter {
-  public:
+namespace profiler {
 
-    //------------------------------------------------------------
-    // A struct for managing a single 32-bit atomic counter
-    //------------------------------------------------------------
+    class BufferedAtomicCounter {
+    public:
+
+        //------------------------------------------------------------
+        // A struct for managing a single 32-bit atomic counter
+        //------------------------------------------------------------
     
-    struct AtomicCounter {
+        struct PROFILER_API AtomicCounter {
 #ifdef __APPLE__
-        int counts_;
+            int counts_;
+#elif defined _WIN32
+            volatile LONG counts_;
 #else
-        uint32_t counts_;
+            uint32_t counts_;
 #endif
-        AtomicCounter();
-        void increment();
-    };
+            AtomicCounter();
+            void increment();
+        };
 
-    /**
-     * Constructor.
-     */
-    BufferedAtomicCounter();
-    BufferedAtomicCounter(unsigned int bufferSize, uint64_t intervalMs);
+        /**
+         * Constructor.
+         */
+        PROFILER_API BufferedAtomicCounter();
+        PROFILER_API BufferedAtomicCounter(unsigned int bufferSize, uint64_t intervalMs);
 
-    void setTo(unsigned int bufferSize, uint64_t intervalMs);
-    void increment(uint64_t currentMicroSeconds);
-    std::string dump(uint64_t currentMicroSeconds);
+        PROFILER_API void setTo(unsigned int bufferSize, uint64_t intervalMs);
+        PROFILER_API void increment(uint64_t currentMicroSeconds);
+        PROFILER_API std::string dump(uint64_t currentMicroSeconds);
     
-    /**
-     * Destructor.
-     */
-    virtual ~BufferedAtomicCounter();
+        /**
+         * Destructor.
+         */
+        PROFILER_API virtual ~BufferedAtomicCounter();
 
-  private:
+    private:
 
-    uint64_t minorIntervalMs_;
-    uint64_t majorIntervalMs_;
+        uint64_t minorIntervalMs_;
+        uint64_t majorIntervalMs_;
     
-    std::vector<std::vector<AtomicCounter> > counters_;
+        std::vector<std::vector<AtomicCounter> > counters_;
     
-  }; // End class BufferedAtomicCounter
+    }; // End class BufferedAtomicCounter
 
-} // End namespace nifutil
+} // End namespace profiler
 
 
 
-#endif // End #ifndef NIFUTIL_BUFFEREDATOMICCOUNTER_H
+#endif // End #ifndef PROFILER_BUFFEREDATOMICCOUNTER_H
