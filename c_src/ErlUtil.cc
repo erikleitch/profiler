@@ -13,6 +13,7 @@
 
 using namespace std;
 using namespace nifutil;
+using namespace profiler;
 
 /**.......................................................................
  * Constructors

@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "PyParser.h"
-#include "String.h"
+#include "ProfString.h"
 
 #include "exceptionutils.h"
 #include "arrayobject.h"
@@ -9,7 +9,7 @@
 using namespace std;
 
 using namespace gcp::python;
-using namespace gcp::util;
+using namespace profiler;
 
 #define CHECK_ARRAY(arr) \
   {\

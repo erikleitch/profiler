@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace gcp::python;
-using namespace nifutil;
+using namespace profiler;
 
 /**.......................................................................
  * Entry point from the Python environment
