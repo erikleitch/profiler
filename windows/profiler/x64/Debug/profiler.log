@@ -1,0 +1,21 @@
+﻿Build started 8/22/2017 3:31:47 PM.
+     1>Project "C:\Work\git\profiler\windows\profiler\profiler.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /Od /D _DEBUG /D _WINDOWS /D _USRDLL /D PROFILER_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"x64\Debug\profiler.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt ..\..\util\Profiler.cpp
+         Profiler.cpp
+     1>..\..\util\Profiler.cpp(583): warning C4244: '=' : conversion from 'uint64_t' to 'long', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Work\git\profiler\windows\x64\Debug\profiler.dll" /INCREMENTAL /NOLOGO Ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"C:\Work\git\profiler\windows\x64\Debug\profiler.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Work\git\profiler\windows\x64\Debug\profiler.lib" /MACHINE:X64 /DLL x64\Debug\BufferedAtomicCounter.obj
+         x64\Debug\Mutex.obj
+         x64\Debug\Profiler.obj
+         x64\Debug\RingPartition.obj
+         x64\Debug\String.obj
+         x64\Debug\StringBuf.obj
+         x64\Debug\dllmain.obj
+         x64\Debug\stdafx.obj
+         profiler.vcxproj -> C:\Work\git\profiler\windows\x64\Debug\profiler.dll
+     1>Done Building Project "C:\Work\git\profiler\windows\profiler\profiler.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.68
