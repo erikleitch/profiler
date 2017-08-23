@@ -187,9 +187,9 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 
         try {
             bool noop = ErlUtil::getBool(env, ErlUtil::getOption(env, load_info, "noop"));
-            Profiler::noop(noop);
+            profiler::Profiler::noop(noop);
         } catch(...) {
-            Profiler::noop(false);
+            profiler::Profiler::noop(false);
         }
         
         return ret_val;
