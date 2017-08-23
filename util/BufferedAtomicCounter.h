@@ -22,6 +22,10 @@
 
 #include "export.h"
 
+#ifdef PROFILER_EXPORTS
+#include <windows.h>
+#endif
+
 namespace profiler {
 
     class BufferedAtomicCounter {
@@ -35,7 +39,13 @@ namespace profiler {
 #ifdef __APPLE__
             int counts_;
 #elif defined _WIN32
+
+#ifdef PROFILER_EXPORTS
             volatile LONG counts_;
+#else
+            uint32_t counts_;
+#endif
+
 #else
             uint32_t counts_;
 #endif

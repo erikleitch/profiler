@@ -8,6 +8,8 @@
  * 
  * @author Erik Leitch
  */
+#define DIR_HAVE_NUMPY 0
+
 #include <Python.h>
 #include <string>
 #include <vector>
@@ -116,12 +118,14 @@ namespace gcp {
       static int getNumberOfDimensions(const PyObject* arr);
       int getNumberOfDimensions();
       
+#if DIR_HAVE_NUMPY
       // Numpy object handling
 
       static double* getNumpyDoublePtr(PyObject* arr, bool directData);
       static std::vector<int> getNumpyDimensions(PyObject* arr);
       static unsigned getNumpyNDimensions(PyObject* arr);
       static int getNumpyLength(PyObject* arr, unsigned index);
+#endif
 
       static unsigned int getNumberOfDictEntries(const PyObject* arr);
       static unsigned int getNumberOfDictEntries(PyObject* arr);

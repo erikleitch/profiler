@@ -1,36 +1,25 @@
 #ifndef PROFILER_MUTEX_H
 #define PROFILER_MUTEX_H
 
-#ifndef _WIN32
-#include <pthread.h>
-#else
-#include <windows.h>
-#endif
-
 #include "export.h"
-
+  
 namespace profiler {
     
+    // Forward declaration of the impl class
+
+    class MutexImpl;
+
+    //------------------------------------------------------------
     // Autoinitializing mutex object
+    //------------------------------------------------------------
 
     class Mutex
     {
-    protected:
-
-#ifndef _WIN32
-        pthread_mutex_t mutex_;
-#else
-        HANDLE mutex_;
-#endif
-
     public:
 
         PROFILER_API Mutex();
-
         PROFILER_API ~Mutex();
-
         PROFILER_API void Lock();
-
         PROFILER_API void Unlock();
 
     private:
@@ -38,9 +27,13 @@ namespace profiler {
         Mutex(const Mutex & rhs);             // no copy
         Mutex & operator=(const Mutex & rhs); // no assignment
 
+        MutexImpl* impl_;
+
     };  // class Mutex
 
+    //------------------------------------------------------------
     // Automatic lock and unlock of mutex
+    //------------------------------------------------------------
 
     class MutexLock
     {

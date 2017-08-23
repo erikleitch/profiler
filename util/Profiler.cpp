@@ -10,78 +10,151 @@
 #include <fstream>
 #include <signal.h>
 
-//#include <sys/time.h>
+//-----------------------------------------------------------------------
+// Platform specific code
+//-----------------------------------------------------------------------
 
 #ifdef _WIN32
+
+#include <windows.h>
 #include <Winsock2.h>
+
+#define THREAD_START(fn) DWORD (fn)(LPVOID arg)
+#define thread_self GetCurrentThreadId
+typedef DWORD thread_id;
+
 #else
+
 #include <sys/select.h>
+#include <pthread.h>
+
+#define THREAD_START(fn) void* (fn)(void *arg)
+#define thread_self pthread_self
+typedef pthread_t thread_id;
+
 #endif
+
+//-----------------------------------------------------------------------
+// End platform-specific code
+//-----------------------------------------------------------------------
+
+//-----------------------------------------------------------------------
+// The implementation of the Profiler class
+//-----------------------------------------------------------------------
+
+
+namespace profiler {
+    class ProfilerImpl {
+
+        enum CounterState {
+            STATE_TRIGGERED,
+            STATE_DONE
+        };
+        
+        struct Counter {
+            int64_t currentCounts_;
+            int64_t deltaCounts_;
+
+            int64_t currentUsec_;
+            int64_t deltaUsec_;
+
+            CounterState state_;
+
+            unsigned errorCountUninitiated_;
+            unsigned errorCountUnterminated_;
+
+            void start(int64_t usec, unsigned count);
+            void stop(int64_t usec, unsigned count);
+            
+            Counter();
+        };
+
+    public: 
+        
+        static void noop(bool makeNoop);
+        static int64_t getCurrentMicroSeconds();
+        static ProfilerImpl* get();
+
+        static unsigned profile(std::string command, bool perThread=false, bool always=false);
+        static unsigned profile(std::string command, std::string value, bool perThread=false, bool always=false);
+
+        //------------------------------------------------------------
+        // Time-resolved atomic counters
+        //------------------------------------------------------------
+
+
+        static void addRingPartition(uint64_t ptr, std::string leveldbFile);
+        
+        static void initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+                                             unsigned int bufferSize, uint64_t intervalMs,
+                                             std::string fileName);
+
+        static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
+
+        unsigned start(std::string& label, bool perThread);
+        void stop(std::string& label, bool perThread);
+        
+        std::string formatStats(bool crTerminated);
+        void dump(std::string fileName);
+        void setPrefix(std::string fileName);
+        void debug();
+        
+        Counter& getCounter(std::string& label, bool perThread);
+        
+        void startAtomicCounterTimer();
+        void dumpAtomicCounters();
+        static THREAD_START(runAtomicCounterTimer);
+        
+        virtual ~ProfilerImpl();
+
+    private:
+        
+        ProfilerImpl();
+        std::vector<thread_id> getThreadIds();
+        std::map<std::string, std::map<thread_id, Counter> > countMap_;
+        thread_id atomicCounterTimerId_;
+        
+        //------------------------------------------------------------
+        // Members for normal counters
+        //------------------------------------------------------------
+        
+        unsigned nAccessed_;
+        
+        Mutex mutex_;
+        unsigned counter_;
+        std::string prefix_;
+        
+        //------------------------------------------------------------
+        // Members for time-resolved atomic counting
+        //------------------------------------------------------------
+        
+        std::map<uint64_t, RingPartition> atomicCounterMap_;
+        
+        uint64_t majorIntervalUs_;
+        std::string atomicCounterOutput_;
+        bool firstDump_;
+        
+        static ProfilerImpl instance_;
+        static bool noop_;
+        
+    };
+};
 
 using namespace profiler;
 using namespace std;
 
-Profiler Profiler::instance_;
-bool     Profiler::noop_ = false;
+ProfilerImpl ProfilerImpl::instance_;
+bool         ProfilerImpl::noop_ = false;
+
 
 //=======================================================================
-// Profiler::Counter
-//=======================================================================
-
-Profiler::Counter::Counter()
-{
-    currentCounts_ = 0;
-    deltaCounts_   = 0;
-
-    currentUsec_   = 0;
-    deltaUsec_     = 0;
-
-    state_ = STATE_DONE;
-    errorCountUninitiated_  = 0;
-    errorCountUnterminated_ = 0;
-}
-
-void Profiler::Counter::start(int64_t usec, unsigned count)
-{
-    // Only set the time if the last trigger is done
-    
-    if(state_ == STATE_DONE) {
-        currentUsec_   = usec;
-        state_ = STATE_TRIGGERED;
-    } else {
-        errorCountUnterminated_++;
-    }
-    
-    currentCounts_ = count;
-}
-
-void Profiler::Counter::stop(int64_t usec, unsigned count)
-{
-    // Only increment this counter if it was in fact triggered prior
-    // to this call
-    
-    if(state_ == STATE_TRIGGERED) {
-        deltaUsec_ += (usec - currentUsec_);
-        
-        // Keep track of the number of times the Profiler registers
-        // have been accessed since the current counter was started.
-        
-        deltaCounts_ += (count - currentCounts_);
-
-        state_ = STATE_DONE;
-    } else {
-        errorCountUninitiated_++;
-    }
-}
-
-//=======================================================================
-// Profiler
+// ProfilerImpl
 //=======================================================================
 
 /**.......................................................................
  * Constructor.
  */
-Profiler::Profiler() 
+ProfilerImpl::ProfilerImpl() 
 {
     nAccessed_            = 0;
     counter_              = 0;
@@ -95,7 +168,7 @@ Profiler::Profiler()
 /**.......................................................................
  * Destructor.
  */
-Profiler::~Profiler() 
+ProfilerImpl::~ProfilerImpl() 
 {
 #ifndef _WIN32
     std::ostringstream os;
@@ -112,7 +185,7 @@ Profiler::~Profiler()
 #endif
 }
 
-Profiler::Counter& Profiler::getCounter(std::string& label, bool perThread)
+ProfilerImpl::Counter& ProfilerImpl::getCounter(std::string& label, bool perThread)
 {
     thread_id id = perThread ? thread_self() : 0x0;
     return countMap_[label][id];
@@ -121,12 +194,11 @@ Profiler::Counter& Profiler::getCounter(std::string& label, bool perThread)
 /**.......................................................................
  * Start a named counter
  */
-unsigned Profiler::start(std::string& label, bool perThread)
+unsigned ProfilerImpl::start(std::string& label, bool perThread)
 {
     unsigned count = 0;
 
     mutex_.Lock();
-
     Counter& counter = getCounter(label, perThread);
     count = ++counter_;
     counter.start(getCurrentMicroSeconds(), count);
@@ -139,7 +211,7 @@ unsigned Profiler::start(std::string& label, bool perThread)
 /**.......................................................................
  * Stop a named counter
  */
-void Profiler::stop(std::string& label, bool perThread)
+void ProfilerImpl::stop(std::string& label, bool perThread)
 {
     mutex_.Lock();
 
@@ -155,7 +227,7 @@ void Profiler::stop(std::string& label, bool perThread)
     mutex_.Unlock();
 }
 
-std::vector<thread_id> Profiler::getThreadIds()
+std::vector<thread_id> ProfilerImpl::getThreadIds()
 {
     std::map<thread_id, thread_id> tempMap;
     std::vector<thread_id> threadVec;
@@ -163,10 +235,10 @@ std::vector<thread_id> Profiler::getThreadIds()
     // Iterate over all labeled counters and threads to construct a
     // unique list of threads
     
-    for(std::map<std::string, std::map<thread_id, Profiler::Counter> >::iterator iter = countMap_.begin();
+    for(std::map<std::string, std::map<thread_id, ProfilerImpl::Counter> >::iterator iter = countMap_.begin();
         iter != countMap_.end(); iter++) {
-        std::map<thread_id, Profiler::Counter>& threadMap = iter->second;
-        for(std::map<thread_id, Profiler::Counter>::iterator iter2 = threadMap.begin(); iter2 != threadMap.end(); iter2++) {
+        std::map<thread_id, ProfilerImpl::Counter>& threadMap = iter->second;
+        for(std::map<thread_id, ProfilerImpl::Counter>::iterator iter2 = threadMap.begin(); iter2 != threadMap.end(); iter2++) {
             tempMap[iter2->first] = iter2->first;
         }
     }
@@ -182,7 +254,7 @@ std::vector<thread_id> Profiler::getThreadIds()
 /**.......................................................................
  * Dump out a text file with profiler stats
  */
-void Profiler::dump(std::string fileName)
+void ProfilerImpl::dump(std::string fileName)
 {
     COUT("Dumping to file: " << fileName);
     std::fstream outfile;                                               
@@ -191,7 +263,7 @@ void Profiler::dump(std::string fileName)
     outfile.close();
 }
 
-std::string Profiler::formatStats(bool term)
+std::string ProfilerImpl::formatStats(bool term)
 {
     std::ostringstream os;
     
@@ -209,7 +281,7 @@ std::string Profiler::formatStats(bool term)
     
     OSTERM(os, term, true, false, "label" << " ");
     
-    for(std::map<std::string, std::map<thread_id, Profiler::Counter> >::iterator iter = countMap_.begin();
+    for(std::map<std::string, std::map<thread_id, ProfilerImpl::Counter> >::iterator iter = countMap_.begin();
         iter != countMap_.end(); iter++) {
         os << "'" << iter->first << "'" << " ";
     }
@@ -229,15 +301,15 @@ std::string Profiler::formatStats(bool term)
         
         OSTERM(os, term, true, false, "count" << " " << "0x" << std::hex << (int64_t)id << std::dec << " ");
         
-        for(std::map<std::string, std::map<thread_id, Profiler::Counter> >::iterator iter = countMap_.begin();
+        for(std::map<std::string, std::map<thread_id, ProfilerImpl::Counter> >::iterator iter = countMap_.begin();
             iter != countMap_.end(); iter++) {
-            std::map<thread_id, Profiler::Counter>& threadCountMap = iter->second;
+            std::map<thread_id, ProfilerImpl::Counter>& threadCountMap = iter->second;
 
 
             if(threadCountMap.find(id) == threadCountMap.end()) {
                 os << "0" << " ";
             } else {
-                Profiler::Counter& counter = threadCountMap[id];
+                ProfilerImpl::Counter& counter = threadCountMap[id];
                 os << counter.deltaCounts_ << " ";
             }
         }
@@ -256,14 +328,14 @@ std::string Profiler::formatStats(bool term)
         
         OSTERM(os, term, true, false, "usec" << " " << "0x" << std::hex << (int64_t)id << std::dec << " ");
         
-        for(std::map<std::string, std::map<thread_id, Profiler::Counter> >::iterator iter = countMap_.begin();
+        for(std::map<std::string, std::map<thread_id, ProfilerImpl::Counter> >::iterator iter = countMap_.begin();
             iter != countMap_.end(); iter++) {
-            std::map<thread_id, Profiler::Counter>& threadCountMap = iter->second;
+            std::map<thread_id, ProfilerImpl::Counter>& threadCountMap = iter->second;
 
             if(threadCountMap.find(id) == threadCountMap.end()) {
                 os << "0" << " ";
             } else {
-                Profiler::Counter& counter = threadCountMap[id];
+                ProfilerImpl::Counter& counter = threadCountMap[id];
                 os << counter.deltaUsec_ << " ";
             }
         }
@@ -279,12 +351,12 @@ std::string Profiler::formatStats(bool term)
 
         thread_id id = threadVec[iThread];
         
-        for(std::map<std::string, std::map<thread_id, Profiler::Counter> >::iterator iter = countMap_.begin();
+        for(std::map<std::string, std::map<thread_id, ProfilerImpl::Counter> >::iterator iter = countMap_.begin();
             iter != countMap_.end(); iter++) {
-            std::map<thread_id, Profiler::Counter>& threadCountMap = iter->second;
+            std::map<thread_id, ProfilerImpl::Counter>& threadCountMap = iter->second;
             
             if(threadCountMap.find(id) != threadCountMap.end()) {
-                Profiler::Counter& counter = threadCountMap[id];
+                ProfilerImpl::Counter& counter = threadCountMap[id];
 
                 if(counter.errorCountUninitiated_ > 0) {
                     OSTERM(os, term, false, true, "WARNING:" 
@@ -316,7 +388,7 @@ std::string Profiler::formatStats(bool term)
     return os.str();
 }
 
-int64_t Profiler::getCurrentMicroSeconds()
+int64_t ProfilerImpl::getCurrentMicroSeconds()
 {
 #ifdef _WIN32
     // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
@@ -337,9 +409,7 @@ int64_t Profiler::getCurrentMicroSeconds()
     long usec = (long) (system_time.wMilliseconds * 1000);
     return static_cast<uint64_t>(sec) * 1000000 + usec;
     
-#else
-
-#if _POSIX_TIMERS >= 200801L
+#elif _POSIX_TIMERS >= 200801L
 
     struct timespec ts;
 
@@ -356,14 +426,12 @@ int64_t Profiler::getCurrentMicroSeconds()
     return static_cast<uint64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
 
 #endif
-
-#endif
 }
 
 /**.......................................................................
  * Return the static instance of this class
  */
-Profiler* Profiler::get()
+ProfilerImpl* ProfilerImpl::get()
 {
     return &instance_;
 }
@@ -371,7 +439,7 @@ Profiler* Profiler::get()
 /**.......................................................................
  * Set the prefix path for storing profiler output
  */
-void Profiler::setPrefix(std::string prefix)
+void ProfilerImpl::setPrefix(std::string prefix)
 {
     prefix_ = prefix;
 }
@@ -390,7 +458,7 @@ void Profiler::setPrefix(std::string prefix)
  * locking/unlocking on top of the mutex controlled access to the
  * counters that we already have
  */
-void Profiler::noop(bool makeNoop)
+void ProfilerImpl::noop(bool makeNoop)
 {
     noop_ = makeNoop;
 }
@@ -398,7 +466,7 @@ void Profiler::noop(bool makeNoop)
 /**.......................................................................
  * Print debug information
  */
-void Profiler::debug()
+void ProfilerImpl::debug()
 {
     COUT("Prefix is: "  << GREEN << "'" << instance_.prefix_ << "'" << std::endl << NORM);
     COUT("Noop is:   "  << GREEN << noop_ << std::endl << NORM);
@@ -406,12 +474,12 @@ void Profiler::debug()
     COUT("Stats: " << GREEN << std::endl << std::endl << formatStats(true) << NORM);
 }
 
-unsigned Profiler::profile(std::string command, bool perThread, bool always)
+unsigned ProfilerImpl::profile(std::string command, bool perThread, bool always)
 {
     return profile(command, "", perThread, always);
 }
 
-unsigned Profiler::profile(std::string command, std::string value, bool perThread, bool always)
+unsigned ProfilerImpl::profile(std::string command, std::string value, bool perThread, bool always)
 {
     unsigned retval=0;
 
@@ -424,15 +492,16 @@ unsigned Profiler::profile(std::string command, std::string value, bool perThrea
         instance_.dump(value);
     else if(command == "debug")
         instance_.debug();
-    else if(command == "start")
+    else if(command == "start") {
         retval = instance_.start(value, perThread);
-    else if(command == "stop")
+    } else if(command == "stop") {
         instance_.stop(value, perThread);
+    }
 
     return retval;
 }
 
-void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
+void ProfilerImpl::addRingPartition(uint64_t ptr, std::string leveldbFile)
 {
     instance_.mutex_.Lock();
     
@@ -449,7 +518,7 @@ void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
     instance_.mutex_.Unlock();
 }
 
-void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+void ProfilerImpl::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
                                         unsigned int bufferSize, uint64_t intervalUs, std::string fileName)
 {
     instance_.mutex_.Lock();
@@ -477,13 +546,13 @@ void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& name
     instance_.mutex_.Unlock();
 }
 
-void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
+void ProfilerImpl::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
 {
     if(instance_.atomicCounterMap_.find(partPtr) != instance_.atomicCounterMap_.end())
         instance_.atomicCounterMap_[partPtr].incrementCounter(counterName, getCurrentMicroSeconds());
 }
 
-void Profiler::startAtomicCounterTimer()
+void ProfilerImpl::startAtomicCounterTimer()
 {
     std::fstream outfile;
     outfile.open("/tmp/profilerMetaData.txt", std::fstream::out|std::fstream::app);
@@ -502,7 +571,7 @@ void Profiler::startAtomicCounterTimer()
 
 }
 
-void Profiler::dumpAtomicCounters()
+void ProfilerImpl::dumpAtomicCounters()
 {
     try {
 
@@ -553,13 +622,9 @@ void Profiler::dumpAtomicCounters()
     }
 }
 
-#ifdef _WIN32
-DWORD WINAPI Profiler::runAtomicCounterTimer(LPVOID arg)
-#else
-THREAD_START(Profiler::runAtomicCounterTimer)
-#endif
+THREAD_START(ProfilerImpl::runAtomicCounterTimer)
 {
-    Profiler* prof = (Profiler*)arg;
+    ProfilerImpl* prof = (ProfilerImpl*)arg;
     bool first = true;
     struct timeval timeout;
     
@@ -588,4 +653,96 @@ THREAD_START(Profiler::runAtomicCounterTimer)
     } while(select(0, NULL, NULL, NULL, &timeout) == 0);
 
     return 0;
+}
+
+//=======================================================================
+// ProfilerImpl::Counter
+//=======================================================================
+
+ProfilerImpl::Counter::Counter()
+{
+    currentCounts_ = 0;
+    deltaCounts_   = 0;
+
+    currentUsec_   = 0;
+    deltaUsec_     = 0;
+
+    state_ = STATE_DONE;
+    errorCountUninitiated_  = 0;
+    errorCountUnterminated_ = 0;
+}
+
+void ProfilerImpl::Counter::start(int64_t usec, unsigned count)
+{
+    // Only set the time if the last trigger is done
+    
+    if(state_ == STATE_DONE) {
+        currentUsec_   = usec;
+        state_ = STATE_TRIGGERED;
+    } else {
+        errorCountUnterminated_++;
+    }
+    
+    currentCounts_ = count;
+}
+
+void ProfilerImpl::Counter::stop(int64_t usec, unsigned count)
+{
+    // Only increment this counter if it was in fact triggered prior
+    // to this call
+    
+    if(state_ == STATE_TRIGGERED) {
+        deltaUsec_ += (usec - currentUsec_);
+        
+        // Keep track of the number of times the Profiler registers
+        // have been accessed since the current counter was started.
+        
+        deltaCounts_ += (count - currentCounts_);
+
+        state_ = STATE_DONE;
+    } else {
+        errorCountUninitiated_++;
+    }
+}
+
+//=======================================================================
+// Profiler class definition
+//=======================================================================
+
+unsigned Profiler::profile(std::string command, bool perThread, bool always)
+{
+    return ProfilerImpl::profile(command, perThread, always);
+}
+
+unsigned Profiler::profile(std::string command, std::string value, bool perThread, bool always)
+{
+    return ProfilerImpl::profile(command, value, perThread, always);
+}
+
+void Profiler::noop(bool makeNoop)
+{
+    return ProfilerImpl::noop(makeNoop);
+}
+
+int64_t Profiler::getCurrentMicroSeconds()
+{
+    return ProfilerImpl::getCurrentMicroSeconds();
+}
+
+
+void Profiler::addRingPartition(uint64_t ptr, std::string leveldbFile)
+{
+    return ProfilerImpl::addRingPartition(ptr, leveldbFile);
+}
+
+void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& nameMap,
+                 unsigned int bufferSize, uint64_t intervalMs,
+                 std::string fileName)
+{
+    return ProfilerImpl::initializeAtomicCounters(nameMap, bufferSize, intervalMs, fileName);
+}
+
+void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
+{
+    return ProfilerImpl::incrementAtomicCounter(partPtr, counterName);
 }

@@ -1,15 +1,18 @@
 #include <iostream>
 
 #include "PyParser.h"
-#include "String.h"
+#include "ProfString.h"
 
 #include "exceptionutils.h"
+
+#if DIR_HAVE_NUMPY
 #include "arrayobject.h"
+#endif
 
 using namespace std;
 
 using namespace gcp::python;
-using namespace gcp::util;
+using namespace profiler;
 
 #define CHECK_ARRAY(arr) \
   {\
@@ -414,7 +417,7 @@ bool PyParser::isString(const PyObject* arr)
 
 bool PyParser::isString(PyObject* arr)
 {
-  return PyString_Check(arr);
+  return PyBytes_Check(arr);
 }
 
 /**.......................................................................
@@ -468,7 +471,7 @@ bool PyParser::isInt(PyObject* arr)
 
 bool PyParser::isInt(const PyObject* arr)
 {
-  return PyInt_Check(arr);
+  return PyLong_Check(arr);
 }
 
 /**.......................................................................
@@ -494,7 +497,7 @@ std::string PyParser::getString(PyObject* arr, unsigned iEl)
     ThrowRuntimeError("Object does not represent a string");
   }
 
-  std::string retval(PyString_AsString(obj));
+  std::string retval(PyBytes_AsString(obj));
 
   return retval;
 }
@@ -515,7 +518,7 @@ float PyParser::getFloat(PyObject* arr, unsigned iEl)
     ThrowRuntimeError("Object does not represent a float");
   }
 
-  float retval = PyFloat_AS_DOUBLE(arr);
+  float retval = PyFloat_AsDouble(arr);
 
   return retval;
 }
@@ -565,7 +568,7 @@ unsigned PyParser::getUintVal()
 
 unsigned PyParser::getUintVal(PyObject* arr)
 {
-  long val = PyInt_AsLong(arr);
+  long val = PyLong_AsLong(arr);
 
   if(!isInt(arr)) {
     ThrowRuntimeError("Object does not represent integer data");
@@ -612,6 +615,7 @@ bool PyParser::getBoolVal(PyObject* arr, unsigned iEl)
   }
 }
 
+#if DIR_HAVE_NUMPY
 double* PyParser::getNumpyDoublePtr(PyObject* arr, bool directData)
 {
   if(directData) {
@@ -667,3 +671,4 @@ unsigned PyParser::getNumpyNDimensions(PyObject* arr)
 {
   return ((PyArrayObject*)(arr))->nd;
 }
+#endif

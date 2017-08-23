@@ -10,13 +10,13 @@
 #include "Profiler.h"
 #include "exceptionutils.h"
 
-#if DIR_HAVE_NUMPY
-#include "arrayobject.h"
-#endif
+//#if DIR_HAVE_NUMPY
+//#include "arrayobject.h"
+//#endif
 
 using namespace std;
 using namespace gcp::python;
-using namespace nifutil;
+using namespace profiler;
 
 /**.......................................................................
  * Entry point from the Python environment
@@ -50,8 +50,8 @@ static PyObject* profile(PyObject* self, PyObject* args)
     //------------------------------------------------------------
 
     if(atom == "debug") {
-      Profiler::get()->debug();
-      return Py_BuildValue("s", "ok");
+        Profiler::profile("debug");
+        return Py_BuildValue("s", "ok");
     }
 
     //------------------------------------------------------------
@@ -105,8 +105,17 @@ static PyMethodDef profilerPyTest_methods[] = {
   {NULL, NULL, 0, NULL}
 };
 
+static struct PyModuleDef profilerPyTest_modDef = {
+    PyModuleDef_HEAD_INIT,
+    "profilerPyTest",
+    "",
+    -1,
+    profilerPyTest_methods
+};
+
 PyMODINIT_FUNC
 initprofilerPyTest(void)
 {
-  (void) Py_InitModule("profilerPyTest", profilerPyTest_methods);
+//  (void) Py_InitModule("profilerPyTest", profilerPyTest_methods);
+    return PyModule_Create(&profilerPyTest_modDef);
 }

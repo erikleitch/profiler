@@ -1,3 +1,6 @@
+#ifndef PROFILER_EXPORT_H
+#define PROFILER_EXPORT_H
+
 // Include file for exporting a Windows DLL API, if we are compiling under Windows
 
 #ifdef _WIN32
@@ -14,5 +17,5 @@
 #define PROFILER_API
 #endif
 
-
+#endif
 
