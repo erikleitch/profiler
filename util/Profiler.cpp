@@ -26,6 +26,7 @@ typedef DWORD thread_id;
 #else
 
 #include <sys/select.h>
+#include <sys/time.h>
 #include <pthread.h>
 
 #define THREAD_START(fn) void* (fn)(void *arg)

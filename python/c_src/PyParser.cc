@@ -66,8 +66,6 @@ int PyParser::getNumberOfDimensions(PyObject* arr)
 {
   CHECK_ARRAY(arr);
 
-  COUT("GND arra = " << arr);
-  
   // If the object is a tuple, or a list or a sequence, it can have
   // multiple dimensions
 
@@ -376,7 +374,7 @@ bool PyParser::isSet()
 
 bool PyParser::isSet(const PyObject* arr)
 {
-  return isSet((PyObject*) arr);
+    return isSet((PyObject*) arr);
 }
 
 bool PyParser::isSet(PyObject* arr)
@@ -417,7 +415,7 @@ bool PyParser::isString(const PyObject* arr)
 
 bool PyParser::isString(PyObject* arr)
 {
-  return PyBytes_Check(arr);
+    return PyUnicode_Check(arr);
 }
 
 /**.......................................................................
@@ -479,8 +477,6 @@ bool PyParser::isInt(const PyObject* arr)
  */
 std::string PyParser::getString(unsigned iEl)
 {
-    COUT("Inside getString 0");
-    COUT("Inside getString array = " << array_);
   return getString(array_, iEl);
 }
 
@@ -497,7 +493,7 @@ std::string PyParser::getString(PyObject* arr, unsigned iEl)
     ThrowRuntimeError("Object does not represent a string");
   }
 
-  std::string retval(PyBytes_AsString(obj));
+  std::string retval(PyBytes_AsString(PyUnicode_AsASCIIString(obj)));
 
   return retval;
 }

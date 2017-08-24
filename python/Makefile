@@ -44,7 +44,7 @@ copy_src:
 	cp $(PYDIR)/c_src/* $(PYDIR)/src
 
 compile_python:
-	cd $(PYDIR)/src; g++ -I $(PYINCDIR) -I $(NUMPYINCDIR) -c *.cc
+	cd $(PYDIR)/src; g++ -I $(PYINCDIR) -I $(NUMPYINCDIR) -c *.cc *.cpp
 	cd $(BASEDIR)
 
 libs:

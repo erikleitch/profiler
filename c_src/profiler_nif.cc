@@ -131,7 +131,7 @@ namespace profiler {
             //------------------------------------------------------------
 
             if(atom == "debug") {
-                Profiler::get()->debug();
+                Profiler::profile("debug");
                 return profiler::ATOM_OK;
             }
 

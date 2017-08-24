@@ -27,15 +27,14 @@ static PyObject* profile(PyObject* self, PyObject* args)
   try {
 
     int argc = PyParser::getNumberOfDimensions(args);
-    
+
     bool always = false;
     if(argc == 2)
       always = PyParser::getBoolVal(PyParser::getArrayItem(args, 1));
 
     PyParser cells(PyParser::getArrayItem(args, 0));
-
     std::string atom  = cells.getString((unsigned)0);
-    
+
     //------------------------------------------------------------
     // Make the profiler a no-op
     //------------------------------------------------------------
@@ -113,9 +112,14 @@ static struct PyModuleDef profilerPyTest_modDef = {
     profilerPyTest_methods
 };
 
-PyMODINIT_FUNC
-initprofilerPyTest(void)
-{
+//PyMODINIT_FUNC
+//initprofilerPyTest(void)
+//{
 //  (void) Py_InitModule("profilerPyTest", profilerPyTest_methods);
+//}
+
+PyMODINIT_FUNC
+PyInit_profilerPyTest(void)
+{
     return PyModule_Create(&profilerPyTest_modDef);
 }
