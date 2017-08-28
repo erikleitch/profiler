@@ -50,8 +50,6 @@ void PyParser::setTo(const PyObject* arr)
 {
   CHECK_ARRAY(arr);
   array_ = arr;
-
-  COUT("Array is now " << array_);
 }
 
 /**.......................................................................

@@ -49,7 +49,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
     //------------------------------------------------------------
 
     if(atom == "debug") {
-        Profiler::profile("debug");
+        Profiler::profileChar("debug", "", false, false);
         return Py_BuildValue("s", "ok");
     }
 
@@ -64,7 +64,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
       if(cells.getSize() > 2)
         perThread = cells.getBoolVal((unsigned)2);
       
-      uint64_t count = Profiler::profile(atom, label, perThread, always);
+      uint64_t count = Profiler::profileChar(atom.c_str(), label.c_str(), perThread, always);
       return PyLong_FromUnsignedLongLong(count);
     }
 
@@ -75,7 +75,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
     if(atom == "dump" || atom == "prefix") {
       if(cells.getSize() != 2)
         ThrowRuntimeError("You must specify a path with the " << atom << " argument");
-      Profiler::profile(atom, cells.getString((unsigned)1), true);
+      Profiler::profileChar(atom.c_str(), cells.getString((unsigned)1).c_str(), false, true);
       return Py_BuildValue("s", "ok");
     }
 

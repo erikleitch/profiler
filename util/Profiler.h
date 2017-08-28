@@ -40,8 +40,9 @@ namespace profiler {
         PROFILER_API static void noop(bool makeNoop);
         PROFILER_API static int64_t getCurrentMicroSeconds();
 
-        PROFILER_API static unsigned profile(std::string command, bool perThread=false, bool always=false);
-        PROFILER_API static unsigned profile(std::string command, std::string value, bool perThread=false, bool always=false);
+        PROFILER_API static unsigned profile(std::string command, bool perThread, bool always);
+        PROFILER_API static unsigned profile(std::string command, std::string value, bool perThread, bool always);
+        PROFILER_API static unsigned profileChar(const char* command, const char* value, bool perThread=false, bool always=false);
 
         //------------------------------------------------------------
         // Time-resolved atomic counters
@@ -55,6 +56,10 @@ namespace profiler {
                                              std::string fileName);
 
         PROFILER_API static void incrementAtomicCounter(uint64_t partPtr, std::string counterName);
+
+        PROFILER_API static void printString(std::string str);
+        PROFILER_API static void printStringRef(std::string& str);
+        PROFILER_API static void printChar(const char* str);
 
         //------------------------------------------------------------
         // End public API        

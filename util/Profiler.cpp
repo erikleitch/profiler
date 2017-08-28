@@ -19,7 +19,18 @@
 #include <windows.h>
 #include <Winsock2.h>
 
-#define THREAD_START(fn) DWORD (fn)(LPVOID arg)
+// API for CreateThread is different for v120 vs v141
+
+  #if _MSC_FULL_VER == 180040629
+// v120
+    #define THREAD_START(fn) DWORD WINAPI (fn)(LPVOID arg)
+    #define VER WIN_V120
+  #else
+// v141
+    #define THREAD_START(fn) DWORD (fn)(LPVOID arg)
+    #define VER WIN_V141
+  #endif
+
 #define thread_self GetCurrentThreadId
 typedef DWORD thread_id;
 
@@ -29,6 +40,7 @@ typedef DWORD thread_id;
 #include <sys/time.h>
 #include <pthread.h>
 
+#define VER PTHREAD
 #define THREAD_START(fn) void* (fn)(void *arg)
 #define thread_self pthread_self
 typedef pthread_t thread_id;
@@ -104,8 +116,15 @@ namespace profiler {
         
         void startAtomicCounterTimer();
         void dumpAtomicCounters();
+
+#ifndef _MSC_FULL_VER
         static THREAD_START(runAtomicCounterTimer);
-        
+#elif _MSC_FULL_VER == 180040629
+        static DWORD WINAPI runAtomicCounterTimer(LPVOID arg);
+#else
+        static DWORD runAtomicCounterTimer(LPVOID arg);
+#endif
+
         virtual ~ProfilerImpl();
 
     private:
@@ -623,7 +642,11 @@ void ProfilerImpl::dumpAtomicCounters()
     }
 }
 
+#ifndef _MSC_FULL_VER
 THREAD_START(ProfilerImpl::runAtomicCounterTimer)
+#else
+DWORD ProfilerImpl::runAtomicCounterTimer(LPVOID arg)
+#endif
 {
     ProfilerImpl* prof = (ProfilerImpl*)arg;
     bool first = true;
@@ -720,6 +743,11 @@ unsigned Profiler::profile(std::string command, std::string value, bool perThrea
     return ProfilerImpl::profile(command, value, perThread, always);
 }
 
+unsigned Profiler::profileChar(const char* command, const char* value, bool perThread, bool always)
+{
+    return ProfilerImpl::profile(command, value, perThread, always);
+}
+
 void Profiler::noop(bool makeNoop)
 {
     return ProfilerImpl::noop(makeNoop);
@@ -746,4 +774,20 @@ void Profiler::initializeAtomicCounters(std::map<std::string, std::string>& name
 void Profiler::incrementAtomicCounter(uint64_t partPtr, std::string counterName)
 {
     return ProfilerImpl::incrementAtomicCounter(partPtr, counterName);
+}
+
+void Profiler::printString(std::string str)
+{
+    std::cout << "str 1 = " << str << std::endl;
+}
+
+void Profiler::printStringRef(std::string& str)
+{
+    std::cout << "str 2 = " << str << std::endl;
+}
+
+void Profiler::printChar(const char* str)
+{
+    std::cout << "str 3 = " << str << std::endl;
+    ProfilerImpl::profile(str, "", false, false);
 }
