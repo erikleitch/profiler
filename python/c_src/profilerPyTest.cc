@@ -7,7 +7,9 @@
 #include <map>  
 
 #include "PyParser.h"
+#if 0
 #include "Profiler.h"
+#endif
 #include "exceptionutils.h"
 
 //#if DIR_HAVE_NUMPY
@@ -16,7 +18,7 @@
 
 using namespace std;
 using namespace gcp::python;
-using namespace profiler;
+//using namespace profiler;
 
 /**.......................................................................
  * Entry point from the Python environment
@@ -40,7 +42,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
     //------------------------------------------------------------
 
     if(atom == "noop") {
-      Profiler::noop(cells.getBoolVal((unsigned)1));
+//      Profiler::noop(cells.getBoolVal((unsigned)1));
       return Py_BuildValue("s", "ok");
     }
 
@@ -49,7 +51,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
     //------------------------------------------------------------
 
     if(atom == "debug") {
-        Profiler::profileChar("debug", "", false, false);
+//        Profiler::profileChar("debug", "", false, false);
         return Py_BuildValue("s", "ok");
     }
 
@@ -64,7 +66,8 @@ static PyObject* profile(PyObject* self, PyObject* args)
       if(cells.getSize() > 2)
         perThread = cells.getBoolVal((unsigned)2);
       
-      uint64_t count = Profiler::profileChar(atom.c_str(), label.c_str(), perThread, always);
+//      uint64_t count = Profiler::profileChar(atom.c_str(), label.c_str(), perThread, always);
+      uint64_t count = 1;
       return PyLong_FromUnsignedLongLong(count);
     }
 
@@ -75,7 +78,7 @@ static PyObject* profile(PyObject* self, PyObject* args)
     if(atom == "dump" || atom == "prefix") {
       if(cells.getSize() != 2)
         ThrowRuntimeError("You must specify a path with the " << atom << " argument");
-      Profiler::profileChar(atom.c_str(), cells.getString((unsigned)1).c_str(), false, true);
+//      Profiler::profileChar(atom.c_str(), cells.getString((unsigned)1).c_str(), false, true);
       return Py_BuildValue("s", "ok");
     }
 
@@ -98,28 +101,28 @@ static PyObject* listFunctions(PyObject* self, PyObject* args)
   return Py_BuildValue("s", "ok");
 }
 
-static PyMethodDef profilerPyTest_methods[] = {
-  {"list",    listFunctions, METH_VARARGS, "Call profilerPyTest.list() for a list of functions available from this module."},
+static PyMethodDef pyProfiler_methods[] = {
+  {"list",    listFunctions, METH_VARARGS, "Call pyProfiler.list() for a list of functions available from this module."},
   {"profile", profile,       METH_VARARGS, " \n  main profiler method\n"},
   {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef profilerPyTest_modDef = {
+static struct PyModuleDef pyProfiler_modDef = {
     PyModuleDef_HEAD_INIT,
-    "profilerPyTest",
+    "pyProfiler",
     "",
     -1,
-    profilerPyTest_methods
+    pyProfiler_methods
 };
 
 //PyMODINIT_FUNC
-//initprofilerPyTest(void)
+//initpyProfiler(void)
 //{
-//  (void) Py_InitModule("profilerPyTest", profilerPyTest_methods);
+//  (void) Py_InitModule("pyProfiler", pyProfiler_methods);
 //}
 
 PyMODINIT_FUNC
-PyInit_profilerPyTest(void)
+PyInit_pyProfiler(void)
 {
-    return PyModule_Create(&profilerPyTest_modDef);
+    return PyModule_Create(&pyProfiler_modDef);
 }
